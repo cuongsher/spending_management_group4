@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:spending_management_group4/features/homePage.dart';
+import 'package:spending_management_group4/features/HomeContent.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -10,8 +11,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.green)),
-      home: const MyHomePage(title: 'SHER HOME PAGE'),
+      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.green.shade900,),),
+      home: const HomeContent(title: 'SHER HOME PAGE'),
       debugShowCheckedModeBanner: false,
     );
   }
