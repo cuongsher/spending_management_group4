@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'EditProfilePage.dart';
+import 'SecurityPage.dart';
+import 'SettingsPage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -9,7 +11,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-
   String name = "Nguyễn Hoàng";
   String phone = "+84 555 555 55";
   String email = "example@example.com";
@@ -19,31 +20,28 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF6DBE9A),
+      backgroundColor: const Color(0xFF1ABC9C),
       body: Column(
         children: [
-          /// HEADER
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
                   Icon(Icons.arrow_back, color: Colors.black),
                   Text(
                     "Profile",
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                    style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Icon(Icons.notifications_none, color: Colors.black),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          /// BODY
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(25),
@@ -56,25 +54,15 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               child: Column(
                 children: [
-                  const SizedBox(height: 10),
-
                   Text(
                     name,
                     style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-
                   const Text("ID: 25030024"),
-
                   const SizedBox(height: 40),
-
-                  buildItem(
-                    context,
-                    Icons.person_outline,
-                    "Thông Tin Cá Nhân",
-                  ),
-
+                  buildItem(context, Icons.person_outline,
+                      "Thông Tin Cá Nhân"),
                   buildItem(context, Icons.shield_outlined, "Bảo Mật"),
                   buildItem(context, Icons.settings, "Cài Đặt"),
                   buildItem(context, Icons.help_outline, "Trợ Giúp"),
@@ -89,17 +77,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget buildItem(
-      BuildContext context,
-      IconData icon,
-      String title,
-      ) {
+      BuildContext context, IconData icon, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 25),
       child: GestureDetector(
         onTap: () async {
-
           if (title == "Thông Tin Cá Nhân") {
-
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
@@ -122,8 +105,25 @@ class _ProfilePageState extends State<ProfilePage> {
                 darkMode = result["darkMode"];
               });
             }
+          } else if (title == "Bảo Mật") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SecurityPage(),
+              ),
+            );
+          } else if (title == "Cài Đặt") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsPage(),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("$title đang được phát triển")),
+            );
           }
-
         },
         child: Row(
           children: [
@@ -131,16 +131,13 @@ class _ProfilePageState extends State<ProfilePage> {
               height: 60,
               width: 60,
               decoration: BoxDecoration(
-                color: Colors.blue.shade300,
+                color: const Color(0xFF1ABC9C),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(icon, color: Colors.white, size: 28),
             ),
             const SizedBox(width: 20),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16),
-            )
+            Text(title, style: const TextStyle(fontSize: 16)),
           ],
         ),
       ),
