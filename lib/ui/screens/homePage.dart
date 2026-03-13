@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:spending_management_group4/models/PiePainter.dart';
-import 'package:spending_management_group4/models/Category_Item.dart';
-import 'package:spending_management_group4/models/BudgetItem.dart';
-import 'package:spending_management_group4/features/NotificationPage.dart';
+import 'package:spending_management_group4/data/database/models/PiePainter.dart';
+import 'package:spending_management_group4/data/database/models/Category_Item.dart';
+import 'package:spending_management_group4/data/database/models/BudgetItem.dart';
+import 'package:spending_management_group4/ui/screens/NotificationPage.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});

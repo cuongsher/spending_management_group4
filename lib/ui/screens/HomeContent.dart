@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:spending_management_group4/features/CustomPage.dart';
-import 'package:spending_management_group4/features/homePage.dart';
+import 'package:spending_management_group4/ui/screens/CustomPage.dart';
+import 'package:spending_management_group4/ui/screens/homePage.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key,required this.title});
@@ -14,7 +14,7 @@ class _HomeContentState extends State<HomeContent> {
   int selectedIndex = 0;
 
   final List<Widget> pages = [
-    const MyHomePage(title: 'Home',), // 👈 Trang Home có scroll
+    const MyHomePage(title: 'Home',), //  Trang Home có scroll
     const Center(child: Text("Báo Cáo")),
     const Center(child: Text("Lịch Sử")),
     const CustomPage(),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:spending_management_group4/features/CategoryPage.dart';
-import 'package:spending_management_group4/features/Shopping_List_Page.dart';
+import 'package:spending_management_group4/ui/screens/CategoryPage.dart';
+import 'package:spending_management_group4/ui/screens/Shopping_List_Page.dart';
 
 class CustomPage extends StatelessWidget {
   const CustomPage({super.key});
