@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:spending_management_group4/models/ShoppingItem.dart';
+import 'package:spending_management_group4/data/database/models/ShoppingItem.dart';
 
 class ShoppingListPage extends StatelessWidget {
   const ShoppingListPage({super.key});
