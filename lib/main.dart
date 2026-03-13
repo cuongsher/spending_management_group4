@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:spending_management_group4/features/HomeContent.dart';
+import 'package:spending_management_group4/ui/screens/HomeContent.dart';
 
 void main() {
   runApp(const MyApp());
