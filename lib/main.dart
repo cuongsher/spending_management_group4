@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:spending_management_group4/ui/screens/HomeContent.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.green.shade900,),),
+
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.green.shade900,
+        ),
+      ),
+
       home: const HomeContent(title: 'SHER HOME PAGE'),
+
       debugShowCheckedModeBanner: false,
     );
   }

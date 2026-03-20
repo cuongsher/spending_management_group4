@@ -23,35 +23,49 @@ class CustomPage extends StatelessWidget {
             topRight: Radius.circular(40),
           ),
         ),
+
         child: GridView.count(
           crossAxisCount: 3,
           mainAxisSpacing: 20,
           crossAxisSpacing: 20,
+          childAspectRatio: 0.75, // ⭐ quan trọng để tránh overflow
+
           children: [
+
             buildItem(
               context,
               Icons.menu,
               "Hạn Mục\nThu /Chi",
-              const CategoryPage(), // 👈 trang mới
+              const CategoryPage(),
             ),
+
             buildItem(
               context,
               Icons.credit_card,
               "Hạn Mức Chi",
-              const Scaffold(body: Center(child: Text("Hạn mức chi"))),
+              const Scaffold(
+                body: Center(child: Text("Hạn mức chi")),
+              ),
             ),
+
             buildItem(
               context,
               Icons.work_outline,
               "Khoản Thu/Chi\nĐịnh Kỳ",
-              const Scaffold(body: Center(child: Text("Khoản định kỳ"))),
+              const Scaffold(
+                body: Center(child: Text("Khoản định kỳ")),
+              ),
             ),
+
             buildItem(
               context,
               Icons.description,
-              "Quản Lý Tài Sản",
-              const Scaffold(body: Center(child: Text("Quản lý tài sản"))),
+              "Quản Lý\nTài Sản",
+              const Scaffold(
+                body: Center(child: Text("Quản lý tài sản")),
+              ),
             ),
+
             buildItem(
               context,
               Icons.receipt_long,
@@ -70,7 +84,9 @@ class CustomPage extends StatelessWidget {
       String title,
       Widget page,
       ) {
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+
       onTap: () {
         Navigator.push(
           context,
@@ -79,22 +95,36 @@ class CustomPage extends StatelessWidget {
           ),
         );
       },
+
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+
         children: [
+
           Container(
-            height: 90,
-            width: 90,
+            padding: const EdgeInsets.all(20),
+
             decoration: BoxDecoration(
               color: Colors.blue.shade300,
               borderRadius: BorderRadius.circular(25),
             ),
-            child: Icon(icon, size: 40, color: Colors.black),
+
+            child: Icon(
+              icon,
+              size: 36,
+              color: Colors.black,
+            ),
           ),
+
           const SizedBox(height: 10),
+
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

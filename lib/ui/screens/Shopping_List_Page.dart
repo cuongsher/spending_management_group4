@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:spending_management_group4/data/database/models/ShoppingItem.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../provider/shopping_list_provider.dart';
 
 class ShoppingListPage extends StatelessWidget {
   const ShoppingListPage({super.key});
@@ -42,33 +43,34 @@ class ShoppingListPage extends StatelessWidget {
 
             /// Danh sách
             Expanded(
-              child: ListView(
-                children: const [
+              child: Consumer(
+                builder: (context, ref, child) {
 
-                  ShoppingItem(
-                    title: "Kem Đánh răng",
-                    time: "18:46 - 15/10",
-                    icon: Icons.shopping_bag,
-                  ),
+                  final items = ref.watch(shoppingListProvider);
 
-                  ShoppingItem(
-                    title: "Dầu gội đầu",
-                    time: "18:46 - 15/10",
-                    icon: Icons.spa,
-                  ),
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
 
-                  ShoppingItem(
-                    title: "Bàn chải đánh răng",
-                    time: "18:46 - 15/10",
-                    icon: Icons.home_repair_service,
-                  ),
+                      final item = items[index];
 
-                  ShoppingItem(
-                    title: "Túi thơm cho xe ôtô",
-                    time: "18:46 - 15/10",
-                    icon: Icons.directions_car,
-                  ),
-                ],
+                      return ListTile(
+                        leading: const Icon(Icons.shopping_bag, color: Colors.blue),
+
+                        title: Text(
+                          item.itemName,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+
+                        subtitle: Text(
+                          "Price: ${item.estimatedPrice}",
+                        ),
+
+                        trailing: Text(item.status),
+                      );
+                    },
+                  );
+                },
               ),
             ),
 
