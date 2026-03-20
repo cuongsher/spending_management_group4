@@ -19,28 +19,31 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF1ABC9C),
+      backgroundColor: const Color(0xFF00D09E),
       body: Column(
         children: [
-          SafeArea(
-            child: Padding(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Icon(Icons.arrow_back, color: Colors.black),
-                  Text(
-                    "Profile",
-                    style:
-                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Icon(Icons.notifications_none, color: Colors.black),
-                ],
-              ),
-            ),
-          ),
+
+             SafeArea(
+               child: Padding(//khoag cach 4 canh
+                padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 15), //khoang cach hai ben/tren duoi
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Icon(Icons.arrow_back, color: Colors.black),
+                    Text(
+                      "Profile",
+                      style:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Icon(Icons.notifications_none, color: Colors.black),
+                  ],
+                ),
+                           ),
+             ),
+
           const SizedBox(height: 20),
           Expanded(
             child: Container(
@@ -131,7 +134,7 @@ class _ProfilePageState extends State<ProfilePage> {
               height: 60,
               width: 60,
               decoration: BoxDecoration(
-                color: const Color(0xFF1ABC9C),
+                color: const Color(0xFF00D09E),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(icon, color: Colors.white, size: 28),

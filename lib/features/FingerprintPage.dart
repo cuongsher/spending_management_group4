@@ -23,7 +23,7 @@ class FingerprintPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.pop(context) ,//chuyen vô màn cũ
                     child: const Icon(Icons.arrow_back),
                   ),
                   const Text(

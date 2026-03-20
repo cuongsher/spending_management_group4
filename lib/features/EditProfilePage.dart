@@ -32,7 +32,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    nameController = TextEditingController(text: widget.name);
+    nameController = TextEditingController(text: widget.name); //text fields gán noi dung ng dung nhap
     phoneController = TextEditingController(text: widget.phone);
     emailController = TextEditingController(text: widget.email);
     notify = widget.notify;
@@ -41,7 +41,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    const mainGreen = Color(0xFF19C49B);
+    const mainGreen = Color(0xFF00D09E);
     const bodyColor = Color(0xFFDFF3EC);
 
     return Scaffold(
@@ -120,9 +120,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                     const SizedBox(height: 15),
 
-                    buildField("Tên", nameController),
+                    buildField((value){},"Tên", nameController),
 
-                    buildField(
+                    buildField((value){},
                       "Số Điện Thoại",
                       phoneController,
                       keyboardType: TextInputType.number,
@@ -131,7 +131,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ],
                     ),
 
-                    buildField(
+                    buildField((value){},
                       "Email",
                       emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -188,6 +188,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Widget buildField(
+      Function? onValid(String value),
       String label,
       TextEditingController controller, {
         TextInputType keyboardType = TextInputType.text,
@@ -201,6 +202,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           Text(label),
           const SizedBox(height: 5),
           TextField(
+            onChanged: (value){onValid.call(value);},
             controller: controller,
             keyboardType: keyboardType,
             inputFormatters: inputFormatters,

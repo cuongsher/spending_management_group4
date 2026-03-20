@@ -161,7 +161,7 @@ class _TermsAndConditionsPageState
                           ? () {
                         Navigator.pop(context);
                       }
-                          : null,
+                          : null,//k cho bam neu chua dong y
                       child: const Text(
                         "Accept",
                         style: TextStyle(

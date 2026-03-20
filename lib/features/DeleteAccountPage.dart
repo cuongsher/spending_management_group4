@@ -46,15 +46,16 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 20), //k có j
+
 
           /// ===== BODY =====
-          Expanded(
+          Expanded(//lấy hết bên dưới
             child: Container(
               padding: const EdgeInsets.all(25),
-              decoration: const BoxDecoration(
+              decoration: const BoxDecoration(//đinh dạng có màu sắc j
                 color: bodyColor,
-                borderRadius: BorderRadius.vertical(
+                borderRadius: BorderRadius.vertical( // bo tròn ở góc
                   top: Radius.circular(45),
                 ),
               ),
@@ -72,13 +73,13 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                           fontWeight: FontWeight.bold),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 20), //khoảng cách trống kcj giữa chữ trên và dưới
 
-                    Container(
-                      padding: const EdgeInsets.all(20),
+                    Container( //nguyn cục màu xanh chứa ndung
+                      padding: const EdgeInsets.all(20), //khoảng cách của chữ so vs viền cục màu xanh
                       decoration: BoxDecoration(
                         color: Colors.green.shade100,
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)), //4 góc thì circular
                       ),
                       child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +123,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                         suffixIcon: IconButton(
                           icon: Icon(
                             obscure
-                                ? Icons.visibility_off
+                        ? Icons.visibility_off
                                 : Icons.visibility,
                           ),
                           onPressed: () {
@@ -149,7 +150,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                           ),
                         ),
                         onPressed: () {
-                          showDeleteDialog();
+                          showDeleteDialog(); /////
                         },
                         child: const Text(
                           "Vâng, Xóa Tài Khoản",
@@ -198,8 +199,8 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
         return Dialog(
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(25)),
-          child: Padding(
-            padding: const EdgeInsets.all(25),
+          child: Padding(// căn lề
+            padding: const EdgeInsets.all(25), //lề xung quanh là all
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -221,7 +222,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 const SizedBox(height: 25),
 
                 SizedBox(
-                  width: double.infinity,
+                  width: double.infinity,// ghan bởi dialog bên ngoài
                   height: 45,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -232,9 +233,9 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(context).pop(); // close dialog
+                      Navigator.of(context).pop(); // close dialog về màn hình ngay trước đó
                       Navigator.of(context)
-                          .popUntil((route) => route.isFirst);
+                          .popUntil((route) => route.isFirst);//về màn hình ban đầu
                     },
                     child: const Text(
                       "Yes, Delete Account",
@@ -270,6 +271,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
           ),
         );
       },
-    );
+    );//ai k dùng builditem
   }
 }

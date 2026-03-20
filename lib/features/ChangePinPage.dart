@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'SuccessPage.dart';
 
-class ChangePinPage extends StatelessWidget {
+class ChangePinPage extends StatefulWidget {
+
   const ChangePinPage({super.key});
+
+  @override
+  State<ChangePinPage> createState() => _ChangePinPageState();
+}
+
+class _ChangePinPageState extends State<ChangePinPage> {
+  bool eyes = true ;
 
   Widget buildField(String label) {
     return Column(
@@ -11,8 +19,14 @@ class ChangePinPage extends StatelessWidget {
         Text(label),
         const SizedBox(height: 8),
         TextField(
-          obscureText: true,
+
+          obscureText: eyes, //an/hiện text
           decoration: InputDecoration(
+            suffix: IconButton(onPressed: (){
+              setState(() {
+                eyes = !eyes;
+              });
+            }, icon: eyes == true? Icon(Icons.remove_red_eye_rounded):Icon(Icons.remove_red_eye_outlined)),
             filled: true,
             fillColor: const Color(0xFFD8EDE4),
             border: OutlineInputBorder(

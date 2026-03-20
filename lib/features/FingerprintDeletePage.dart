@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'SuccessPage.dart';
 
 class FingerprintDeletePage extends StatelessWidget {
-  final String name; // 👈 BẮT BUỘC PHẢI CÓ
+  final String name;
 
   const FingerprintDeletePage({
     super.key,
-    required this.name, // 👈 BẮT BUỘC
+    required this.name,
   });
 
   @override
@@ -66,7 +66,7 @@ class FingerprintDeletePage extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   Text(
-                    name, // 👈 HIỂN THỊ ĐÚNG NGUYỄN HOÀNG
+                    name,
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),

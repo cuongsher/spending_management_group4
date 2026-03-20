@@ -12,7 +12,7 @@ class _NotificationSettingsPageState
     extends State<NotificationSettingsPage> {
 
   bool general = true;
-  bool sound = true;
+  bool sound = true;//
   bool call = true;
   bool vibration = true;
   bool transactionChange = false;
