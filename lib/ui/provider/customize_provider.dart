@@ -55,6 +55,44 @@ class CustomizeProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> saveCategory(CategoryModel model) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (model.id == null) {
+        await repository.addCategory(model);
+      } else {
+        await repository.updateCategory(model);
+      }
+      await loadCategories(type: selectedCategoryType);
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể lưu hạng mục';
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteCategory(int id) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteCategory(id);
+      await loadCategories(type: selectedCategoryType);
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể xóa hạng mục';
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> loadShoppingItems() async {
     isLoading = true;
     errorMessage = null;
@@ -70,6 +108,44 @@ class CustomizeProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> saveShoppingItem(ShoppingListModel model) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (model.id == null) {
+        await repository.addShoppingItem(model);
+      } else {
+        await repository.updateShoppingItem(model);
+      }
+      await loadShoppingItems();
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể lưu sản phẩm';
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteShoppingItem(int id) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteShoppingItem(id);
+      await loadShoppingItems();
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể xóa sản phẩm';
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> loadAssets() async {
     isLoading = true;
     errorMessage = null;
@@ -82,6 +158,46 @@ class CustomizeProvider extends ChangeNotifier {
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> saveAsset(AssetModel model) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (model.id == null) {
+        await repository.addAsset(model);
+      } else {
+        await repository.updateAsset(model);
+      }
+      await loadAssets();
+      await loadDashboard();
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể lưu tài sản';
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteAsset(int id) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteAsset(id);
+      await loadAssets();
+      await loadDashboard();
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể xóa tài sản';
+      isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
@@ -117,6 +233,40 @@ class CustomizeProvider extends ChangeNotifier {
       return true;
     } catch (_) {
       errorMessage = 'Không thể thêm khoản định kỳ';
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateRecurringTransaction(RecurringTransactionModel model) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.updateRecurringTransaction(model);
+      await loadRecurringItems(type: selectedRecurringType);
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể cập nhật khoản định kỳ';
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteRecurringTransaction(int id) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteRecurringTransaction(id);
+      await loadRecurringItems(type: selectedRecurringType);
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể xóa khoản định kỳ';
       isLoading = false;
       notifyListeners();
       return false;

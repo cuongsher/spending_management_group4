@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/database/models/BudgetModel.dart';
 import '../../router/app_router.dart';
 import '../provider/budget_provider.dart';
+import '../widgets/app_bottom_nav.dart';
 
 class BudgetListScreen extends StatefulWidget {
   const BudgetListScreen({super.key});
@@ -48,9 +49,7 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
                       child: Row(
                         children: [
                           IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
+                            onPressed: () => Navigator.pop(context),
                             icon: const Icon(Icons.arrow_back_ios_new_rounded),
                             color: Colors.white,
                           ),
@@ -110,8 +109,13 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
                                                 const SizedBox(height: 16),
                                             itemBuilder: (context, index) {
                                               final budget = budgets[index];
+                                              final spent = provider
+                                                      .spentByCategory[budget
+                                                          .categoryId] ??
+                                                  0;
                                               return _BudgetTile(
                                                 budget: budget,
+                                                spentAmount: spent,
                                                 onTap: () {
                                                   Navigator.pushNamed(
                                                     context,
@@ -146,7 +150,9 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-                                  const _BudgetNavBar(),
+                                  const AppBottomNav(
+                                    currentRoute: AppRouter.customize,
+                                  ),
                                 ],
                               ),
                       ),
@@ -165,17 +171,19 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
 class _BudgetTile extends StatelessWidget {
   const _BudgetTile({
     required this.budget,
+    required this.spentAmount,
     required this.onTap,
   });
 
   final BudgetModel budget;
+  final double spentAmount;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final progress = budget.amount <= 0
         ? 0.0
-        : ((budget.amount % 100000) / 100000).clamp(0.0, 0.95);
+        : (spentAmount / budget.amount).clamp(0.0, 1.0);
     final theme = _budgetTheme(budget.categoryId);
 
     return InkWell(
@@ -260,84 +268,15 @@ class _BudgetTile extends StatelessWidget {
   }
 }
 
-class _BudgetNavBar extends StatelessWidget {
-  const _BudgetNavBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDDF0DE),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _NavItem(icon: Icons.home_outlined, label: 'Home'),
-          _NavItem(icon: Icons.bar_chart_rounded, label: 'Báo Cáo'),
-          _NavItem(icon: Icons.sync_alt_rounded, label: 'Lịch Sử'),
-          _NavItem(
-            icon: Icons.layers_rounded,
-            label: 'Tùy Chỉnh',
-            selected: true,
-          ),
-          _NavItem(icon: Icons.person_outline_rounded, label: 'Cá Nhân'),
-          _NavItem(icon: Icons.card_giftcard_rounded, label: 'Thử Thách'),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.selected = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF16C8A0) : Colors.transparent,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: const Color(0xFF163C3C),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF163C3C)),
-        ),
-      ],
-    );
-  }
-}
-
 ({IconData icon, Color color}) _budgetTheme(int categoryId) {
   switch (categoryId) {
-    case 1:
-      return (icon: Icons.restaurant_rounded, color: const Color(0xFF7EB8FF));
-    case 2:
-      return (icon: Icons.card_giftcard_rounded, color: const Color(0xFF79AFFF));
     case 3:
-      return (icon: Icons.flight_takeoff_rounded, color: const Color(0xFF79AFFF));
+      return (icon: Icons.restaurant_rounded, color: const Color(0xFF7EB8FF));
+    case 4:
+      return (icon: Icons.shopping_bag_outlined, color: const Color(0xFF79AFFF));
+    case 5:
+      return (icon: Icons.home_work_outlined, color: const Color(0xFF79AFFF));
     default:
-      return (icon: Icons.directions_car_rounded, color: const Color(0xFF79AFFF));
+      return (icon: Icons.school_outlined, color: const Color(0xFF79AFFF));
   }
 }

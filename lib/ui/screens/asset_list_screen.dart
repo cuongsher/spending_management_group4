@@ -64,14 +64,14 @@ class _AssetListScreenState extends State<AssetListScreen> {
                                     const SizedBox(height: 16),
                                 itemBuilder: (context, index) {
                                   final item = provider.assets[index];
-                                  return _assetTile(context, item);
+                                  return _assetTile(context, provider, item);
                                 },
                               ),
                             ),
                             SizedBox(
                               width: 140,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () => _openAssetDialog(context, provider),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: primary,
                                   foregroundColor: const Color(0xFF163C3C),
@@ -97,7 +97,11 @@ class _AssetListScreenState extends State<AssetListScreen> {
     );
   }
 
-  Widget _assetTile(BuildContext context, AssetModel item) {
+  Widget _assetTile(
+    BuildContext context,
+    CustomizeProvider provider,
+    AssetModel item,
+  ) {
     return GestureDetector(
       onTap: () =>
           Navigator.pushNamed(context, AppRouter.assetDetail, arguments: item),
@@ -134,10 +138,121 @@ class _AssetListScreenState extends State<AssetListScreen> {
                 fontWeight: FontWeight.w800,
               ),
             ),
+            IconButton(
+              onPressed: () => _openAssetDialog(context, provider, initialItem: item),
+              icon: const Icon(Icons.edit_outlined),
+            ),
+            IconButton(
+              onPressed: () => _deleteAsset(context, provider, item),
+              icon: const Icon(Icons.delete_outline),
+              color: Colors.red,
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _openAssetDialog(
+    BuildContext context,
+    CustomizeProvider provider, {
+    AssetModel? initialItem,
+  }) async {
+    final nameController = TextEditingController(
+      text: initialItem?.assetName ?? '',
+    );
+    final amountController = TextEditingController(
+      text: initialItem?.amount.toString() ?? '',
+    );
+    final descriptionController = TextEditingController(
+      text: initialItem?.description ?? '',
+    );
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(initialItem == null ? 'Thêm Tài Sản' : 'Sửa Tài Sản'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Tên tài sản'),
+              ),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Số tiền'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Mô tả'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Lưu'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (saved != true || !mounted) return;
+
+    final success = await provider.saveAsset(
+      AssetModel(
+        id: initialItem?.id,
+        userId: initialItem?.userId ?? 1,
+        assetName: nameController.text.trim(),
+        amount: double.tryParse(amountController.text.trim()) ?? 0,
+        description: descriptionController.text.trim(),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (!success) {
+      ScaffoldMessenger.of(this.context).showSnackBar(
+        SnackBar(content: Text(provider.errorMessage ?? 'Không thể lưu tài sản')),
+      );
+    }
+  }
+
+  Future<void> _deleteAsset(
+    BuildContext context,
+    CustomizeProvider provider,
+    AssetModel item,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Xóa tài sản'),
+          content: Text('Bạn có chắc muốn xóa "${item.assetName}" không?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Xóa'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted || item.id == null) return;
+    await provider.deleteAsset(item.id!);
   }
 
   Widget _topBar(String title) {

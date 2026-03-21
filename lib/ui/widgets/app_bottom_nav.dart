@@ -57,14 +57,6 @@ class AppBottomNav extends StatelessWidget {
               onTap: () => _go(context, AppRouter.profile),
             ),
           ),
-          Expanded(
-            child: _NavItem(
-              icon: Icons.card_giftcard_rounded,
-              label: 'Thử Thách',
-              selected: currentRoute == AppRouter.notifications,
-              onTap: () => _go(context, AppRouter.notifications),
-            ),
-          ),
         ],
       ),
     );

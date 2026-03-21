@@ -19,11 +19,33 @@ class _AddRecurringTransactionScreenState
   static const Color primary = Color(0xFF16C8A0);
   static const Color lightBg = Color(0xFFEAF6EE);
 
-  final _nameController = TextEditingController(text: 'Wedding');
-  final _amountController = TextEditingController(text: '87.32');
-  final _dateController = TextEditingController(text: '15/10/2024');
+  final _nameController = TextEditingController();
+  final _amountController = TextEditingController();
+  final _dateController = TextEditingController();
   String _repeatType = 'Hàng Tháng';
-  final int _categoryId = 3;
+  int _categoryId = 3;
+  RecurringTransactionModel? _initialItem;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    _initialItem =
+        ModalRoute.of(context)?.settings.arguments as RecurringTransactionModel?;
+    if (_initialItem != null) {
+      _nameController.text = _initialItem!.note;
+      _amountController.text = _initialItem!.amount.toString();
+      _dateController.text = _initialItem!.startDate;
+      _repeatType = _initialItem!.repeatCycle;
+      _categoryId = _initialItem!.categoryId;
+    } else {
+      _nameController.text = 'Khoản Định Kỳ';
+      _amountController.text = '87.32';
+      _dateController.text = '15/10/2024';
+    }
+  }
 
   @override
   void dispose() {
@@ -35,16 +57,19 @@ class _AddRecurringTransactionScreenState
 
   Future<void> _save() async {
     final provider = context.read<CustomizeProvider>();
-    final success = await provider.addRecurringTransaction(
-      RecurringTransactionModel(
-        userId: 1,
-        categoryId: _categoryId,
-        amount: double.tryParse(_amountController.text.trim()) ?? 0,
-        startDate: _dateController.text.trim(),
-        repeatCycle: _repeatType,
-        note: _nameController.text.trim(),
-      ),
+    final model = RecurringTransactionModel(
+      id: _initialItem?.id,
+      userId: _initialItem?.userId ?? 1,
+      categoryId: _categoryId,
+      amount: double.tryParse(_amountController.text.trim()) ?? 0,
+      startDate: _dateController.text.trim(),
+      repeatCycle: _repeatType,
+      note: _nameController.text.trim(),
     );
+
+    final success = _initialItem == null
+        ? await provider.addRecurringTransaction(model)
+        : await provider.updateRecurringTransaction(model);
 
     if (!mounted) return;
     if (success) {
@@ -52,7 +77,9 @@ class _AddRecurringTransactionScreenState
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.errorMessage ?? 'Không thể lưu khoản định kỳ'),
+          content: Text(
+            provider.errorMessage ?? 'Không thể lưu khoản định kỳ',
+          ),
         ),
       );
     }
@@ -80,11 +107,11 @@ class _AddRecurringTransactionScreenState
                       child: Row(
                         children: [
                           const BackButton(color: Colors.white),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Thêm Khoản',
+                              _initialItem == null ? 'Thêm Khoản' : 'Sửa Khoản',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF113939),
@@ -185,17 +212,14 @@ class _AddRecurringTransactionScreenState
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: provider.isLoading
-                                        ? null
-                                        : _save,
+                                    onPressed:
+                                        provider.isLoading ? null : _save,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: primary,
                                       foregroundColor: const Color(0xFF163C3C),
                                     ),
                                     child: Text(
-                                      provider.isLoading
-                                          ? 'Đang lưu...'
-                                          : 'Lưu',
+                                      provider.isLoading ? 'Đang lưu...' : 'Lưu',
                                     ),
                                   ),
                                 ),

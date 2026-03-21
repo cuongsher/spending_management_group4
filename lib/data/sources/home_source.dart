@@ -3,7 +3,6 @@ import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../database/models/BudgetModel.dart';
 import '../database/models/NotificationModel.dart';
-import '../database/models/TransactionModel.dart';
 import '../database/models/UserModel.dart';
 
 class HomeSource {
@@ -14,18 +13,11 @@ class HomeSource {
     return UserModel.fromMap(result.first);
   }
 
-  Future<List<TransactionModel>> getRecentTransactions() async {
+  Future<List<Map<String, dynamic>>> getTransactionsWithCategory({
+    int? limit,
+  }) async {
     final Database db = await DatabaseHelper.instance.database;
-    final result = await db.query(
-      'TransactionTable',
-      orderBy: 'id DESC',
-      limit: 8,
-    );
-    return result.map(TransactionModel.fromMap).toList();
-  }
-
-  Future<List<Map<String, dynamic>>> getRecentTransactionsWithCategory() async {
-    final Database db = await DatabaseHelper.instance.database;
+    final limitClause = limit == null ? '' : 'LIMIT $limit';
     return db.rawQuery('''
       SELECT
         t.id,
@@ -37,8 +29,8 @@ class HomeSource {
         c.name AS category_name
       FROM TransactionTable t
       LEFT JOIN Category c ON c.id = t.category_id
-      ORDER BY t.id DESC
-      LIMIT 8
+      ORDER BY t.date DESC, t.id DESC
+      $limitClause
     ''');
   }
 
@@ -56,9 +48,9 @@ class HomeSource {
     ''');
   }
 
-  Future<List<BudgetModel>> getBudgets() async {
+  Future<List<BudgetModel>> getBudgets({int limit = 3}) async {
     final Database db = await DatabaseHelper.instance.database;
-    final result = await db.query('Budget', orderBy: 'id DESC', limit: 3);
+    final result = await db.query('Budget', orderBy: 'id DESC', limit: limit);
     return result.map(BudgetModel.fromMap).toList();
   }
 

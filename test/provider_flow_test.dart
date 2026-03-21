@@ -169,6 +169,60 @@ void main() {
       expect(success, isTrue);
       expect(provider.recurringItems, isNotEmpty);
     });
+
+    test('save and delete category works', () async {
+      final provider = CustomizeProvider(FakeCustomizeRepository());
+      await provider.loadCategories(type: 'expense');
+
+      final saved = await provider.saveCategory(
+        CategoryModel(
+          userId: 1,
+          name: 'Đi Lại',
+          type: 'expense',
+          description: 'Chi phí di chuyển',
+        ),
+      );
+
+      expect(saved, isTrue);
+      expect(provider.categories.any((item) => item.name == 'Đi Lại'), isTrue);
+
+      final created = provider.categories.firstWhere((item) => item.name == 'Đi Lại');
+      final deleted = await provider.deleteCategory(created.id!);
+
+      expect(deleted, isTrue);
+      expect(provider.categories.any((item) => item.name == 'Đi Lại'), isFalse);
+    });
+
+    test('save and delete shopping item works', () async {
+      final provider = CustomizeProvider(FakeCustomizeRepository());
+      await provider.loadShoppingItems();
+
+      final saved = await provider.saveShoppingItem(
+        ShoppingListModel(
+          userId: 1,
+          itemName: 'Sữa',
+          estimatedPrice: 25,
+          status: 'active',
+        ),
+      );
+
+      expect(saved, isTrue);
+      expect(
+        provider.shoppingItems.any((item) => item.itemName == 'Sữa'),
+        isTrue,
+      );
+
+      final created = provider.shoppingItems.firstWhere(
+        (item) => item.itemName == 'Sữa',
+      );
+      final deleted = await provider.deleteShoppingItem(created.id!);
+
+      expect(deleted, isTrue);
+      expect(
+        provider.shoppingItems.any((item) => item.itemName == 'Sữa'),
+        isFalse,
+      );
+    });
   });
 
   group('ProfileProvider flow', () {
@@ -283,14 +337,55 @@ class FakeBudgetRepository extends BudgetRepository {
   Future<void> addBudget(BudgetModel budget) async {
     seedBudgets.add(budget);
   }
+
+  @override
+  Future<Map<int, double>> getSpentByCategory() async => {
+    for (final budget in seedBudgets) budget.categoryId: budget.amount * 0.25,
+  };
 }
 
 class FakeCustomizeRepository extends CustomizeRepository {
   FakeCustomizeRepository() : super(CustomizeSource());
 
+  final List<CategoryModel> _categories = [
+    CategoryModel(
+      id: 1,
+      userId: 1,
+      name: 'Lương',
+      type: 'income',
+      description: 'Demo',
+    ),
+    CategoryModel(
+      id: 2,
+      userId: 1,
+      name: 'Ăn Uống',
+      type: 'expense',
+      description: 'Demo',
+    ),
+  ];
+  final List<ShoppingListModel> _shoppingItems = [
+    ShoppingListModel(
+      id: 1,
+      userId: 1,
+      itemName: 'Kem Đánh Răng',
+      estimatedPrice: 18,
+      status: 'active',
+    ),
+  ];
+  final List<AssetModel> _assets = [
+    AssetModel(
+      id: 1,
+      userId: 1,
+      assetName: 'Vàng Bạc',
+      amount: 3700,
+      description: 'Tài sản tài chính',
+    ),
+  ];
   final List<RecurringItem> _items = [
     RecurringItem(
       id: 1,
+      userId: 1,
+      categoryId: 1,
       title: 'Lương',
       amount: 4000,
       startDate: '01/10/2024',
@@ -310,41 +405,95 @@ class FakeCustomizeRepository extends CustomizeRepository {
 
   @override
   Future<List<CategoryModel>> getCategories({required String type}) async {
-    return [
+    return _categories.where((item) => item.type == type).toList();
+  }
+
+  @override
+  Future<void> addCategory(CategoryModel model) async {
+    _categories.add(
       CategoryModel(
-        id: 1,
-        userId: 1,
-        name: type == 'income' ? 'Lương' : 'Ăn Uống',
-        type: type,
-        description: 'Demo',
+        id: _categories.length + 1,
+        userId: model.userId,
+        name: model.name,
+        type: model.type,
+        description: model.description,
       ),
-    ];
+    );
+  }
+
+  @override
+  Future<void> updateCategory(CategoryModel model) async {
+    final index = _categories.indexWhere((item) => item.id == model.id);
+    if (index >= 0) {
+      _categories[index] = model;
+    }
+  }
+
+  @override
+  Future<void> deleteCategory(int id) async {
+    _categories.removeWhere((item) => item.id == id);
   }
 
   @override
   Future<List<ShoppingListModel>> getShoppingItems() async {
-    return [
+    return List<ShoppingListModel>.from(_shoppingItems);
+  }
+
+  @override
+  Future<void> addShoppingItem(ShoppingListModel model) async {
+    _shoppingItems.add(
       ShoppingListModel(
-        id: 1,
-        userId: 1,
-        itemName: 'Kem Đánh Răng',
-        estimatedPrice: 18,
-        status: 'active',
+        id: _shoppingItems.length + 1,
+        userId: model.userId,
+        itemName: model.itemName,
+        estimatedPrice: model.estimatedPrice,
+        status: model.status,
       ),
-    ];
+    );
+  }
+
+  @override
+  Future<void> updateShoppingItem(ShoppingListModel model) async {
+    final index = _shoppingItems.indexWhere((item) => item.id == model.id);
+    if (index >= 0) {
+      _shoppingItems[index] = model;
+    }
+  }
+
+  @override
+  Future<void> deleteShoppingItem(int id) async {
+    _shoppingItems.removeWhere((item) => item.id == id);
   }
 
   @override
   Future<List<AssetModel>> getAssets() async {
-    return [
+    return List<AssetModel>.from(_assets);
+  }
+
+  @override
+  Future<void> addAsset(AssetModel model) async {
+    _assets.add(
       AssetModel(
-        id: 1,
-        userId: 1,
-        assetName: 'Vàng Bạc',
-        amount: 3700,
-        description: 'Tài sản tài chính',
+        id: _assets.length + 1,
+        userId: model.userId,
+        assetName: model.assetName,
+        amount: model.amount,
+        description: model.description,
       ),
-    ];
+    );
+  }
+
+  @override
+  Future<void> updateAsset(AssetModel model) async {
+    final index = _assets.indexWhere((item) => item.id == model.id);
+    if (index >= 0) {
+      _assets[index] = model;
+    }
+  }
+
+  @override
+  Future<void> deleteAsset(int id) async {
+    _assets.removeWhere((item) => item.id == id);
   }
 
   @override
@@ -359,6 +508,8 @@ class FakeCustomizeRepository extends CustomizeRepository {
     _items.add(
       RecurringItem(
         id: _items.length + 1,
+        userId: model.userId,
+        categoryId: model.categoryId,
         title: model.note,
         amount: model.amount,
         startDate: model.startDate,
@@ -366,6 +517,28 @@ class FakeCustomizeRepository extends CustomizeRepository {
         type: model.categoryId == 1 ? 'income' : 'expense',
       ),
     );
+  }
+
+  @override
+  Future<void> updateRecurringTransaction(RecurringTransactionModel model) async {
+    final index = _items.indexWhere((item) => item.id == model.id);
+    if (index >= 0) {
+      _items[index] = RecurringItem(
+        id: model.id!,
+        userId: model.userId,
+        categoryId: model.categoryId,
+        title: model.note,
+        amount: model.amount,
+        startDate: model.startDate,
+        repeatCycle: model.repeatCycle,
+        type: model.categoryId == 1 ? 'income' : 'expense',
+      );
+    }
+  }
+
+  @override
+  Future<void> deleteRecurringTransaction(int id) async {
+    _items.removeWhere((item) => item.id == id);
   }
 }
 

@@ -11,6 +11,8 @@ class BudgetProvider extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   List<BudgetModel> budgets = [];
+  Map<int, double> spentByCategory = {};
+  BudgetDetailData? detail;
 
   Future<void> loadBudgets() async {
     isLoading = true;
@@ -19,8 +21,24 @@ class BudgetProvider extends ChangeNotifier {
 
     try {
       budgets = await repository.getBudgets();
+      spentByCategory = await repository.getSpentByCategory();
     } catch (e) {
       errorMessage = 'Không thể tải danh sách hạn mức';
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadBudgetDetail(BudgetModel budget) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      detail = await repository.getBudgetDetail(budget);
+    } catch (e) {
+      errorMessage = 'Không thể tải chi tiết hạn mức';
     } finally {
       isLoading = false;
       notifyListeners();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/database/models/ShoppingListModel.dart';
 import '../../router/app_router.dart';
 import '../provider/customize_provider.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -102,9 +103,22 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                             ],
                                           ),
                                         ),
-                                        const Icon(
-                                          Icons.arrow_forward_ios_rounded,
-                                          color: Color(0xFF163C3C),
+                                        IconButton(
+                                          onPressed: () => _openShoppingDialog(
+                                            context,
+                                            provider,
+                                            initialItem: item,
+                                          ),
+                                          icon: const Icon(Icons.edit_outlined),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => _deleteItem(
+                                            context,
+                                            provider,
+                                            item,
+                                          ),
+                                          icon: const Icon(Icons.delete_outline),
+                                          color: Colors.red,
                                         ),
                                       ],
                                     ),
@@ -115,7 +129,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             SizedBox(
                               width: 150,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () =>
+                                    _openShoppingDialog(context, provider),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: primary,
                                   foregroundColor: const Color(0xFF163C3C),
@@ -139,6 +154,101 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _openShoppingDialog(
+    BuildContext context,
+    CustomizeProvider provider, {
+    ShoppingListModel? initialItem,
+  }) async {
+    final nameController = TextEditingController(
+      text: initialItem?.itemName ?? '',
+    );
+    final priceController = TextEditingController(
+      text: initialItem?.estimatedPrice.toString() ?? '',
+    );
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(initialItem == null ? 'Thêm Sản Phẩm' : 'Sửa Sản Phẩm'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Tên sản phẩm'),
+              ),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Giá dự kiến'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Lưu'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (saved != true || !mounted) return;
+
+    final success = await provider.saveShoppingItem(
+      ShoppingListModel(
+        id: initialItem?.id,
+        userId: initialItem?.userId ?? 1,
+        itemName: nameController.text.trim(),
+        estimatedPrice: double.tryParse(priceController.text.trim()) ?? 0,
+        status: initialItem?.status ?? 'active',
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (!success) {
+      ScaffoldMessenger.of(this.context).showSnackBar(
+        SnackBar(content: Text(provider.errorMessage ?? 'Không thể lưu sản phẩm')),
+      );
+    }
+  }
+
+  Future<void> _deleteItem(
+    BuildContext context,
+    CustomizeProvider provider,
+    ShoppingListModel item,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Xóa sản phẩm'),
+          content: Text('Bạn có chắc muốn xóa "${item.itemName}" không?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Xóa'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted || item.id == null) return;
+    await provider.deleteShoppingItem(item.id!);
   }
 
   Widget _topBar(String title) {

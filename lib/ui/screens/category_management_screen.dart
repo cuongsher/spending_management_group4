@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/database/models/CategoryModel.dart';
 import '../../router/app_router.dart';
 import '../provider/customize_provider.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -17,6 +18,8 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   static const Color primary = Color(0xFF16C8A0);
   static const Color lightBg = Color(0xFFEAF6EE);
 
+  String _keyword = '';
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,12 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CustomizeProvider>();
+    final filteredCategories = provider.categories.where((item) {
+      final keyword = _keyword.trim().toLowerCase();
+      if (keyword.isEmpty) return true;
+      return item.name.toLowerCase().contains(keyword) ||
+          item.description.toLowerCase().contains(keyword);
+    }).toList();
 
     return Scaffold(
       backgroundColor: Colors.grey.shade300,
@@ -86,6 +95,11 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                             ),
                             const SizedBox(height: 14),
                             TextField(
+                              onChanged: (value) {
+                                setState(() {
+                                  _keyword = value;
+                                });
+                              },
                               decoration: InputDecoration(
                                 hintText: 'Tìm kiếm...',
                                 filled: true,
@@ -99,11 +113,11 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                             const SizedBox(height: 14),
                             Expanded(
                               child: ListView.separated(
-                                itemCount: provider.categories.length,
+                                itemCount: filteredCategories.length,
                                 separatorBuilder: (context, index) =>
                                     const SizedBox(height: 10),
                                 itemBuilder: (context, index) {
-                                  final item = provider.categories[index];
+                                  final item = filteredCategories[index];
                                   return Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
@@ -137,9 +151,23 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                                             ],
                                           ),
                                         ),
-                                        const Icon(
-                                          Icons.expand_more_rounded,
-                                          color: Color(0xFF163C3C),
+                                        IconButton(
+                                          onPressed: () => _openCategoryDialog(
+                                            context,
+                                            provider,
+                                            initialItem: item,
+                                          ),
+                                          icon: const Icon(Icons.edit_outlined),
+                                          color: const Color(0xFF163C3C),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => _deleteCategory(
+                                            context,
+                                            provider,
+                                            item,
+                                          ),
+                                          icon: const Icon(Icons.delete_outline),
+                                          color: Colors.red,
                                         ),
                                       ],
                                     ),
@@ -150,7 +178,8 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                             SizedBox(
                               width: 150,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () =>
+                                    _openCategoryDialog(context, provider),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: primary,
                                   foregroundColor: const Color(0xFF163C3C),
@@ -174,6 +203,98 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _openCategoryDialog(
+    BuildContext context,
+    CustomizeProvider provider, {
+    CategoryModel? initialItem,
+  }) async {
+    final nameController = TextEditingController(text: initialItem?.name ?? '');
+    final descriptionController = TextEditingController(
+      text: initialItem?.description ?? '',
+    );
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(initialItem == null ? 'Thêm Hạng Mục' : 'Sửa Hạng Mục'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Tên'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Mô tả'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Lưu'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (saved != true || !mounted) return;
+
+    final success = await provider.saveCategory(
+      CategoryModel(
+        id: initialItem?.id,
+        userId: initialItem?.userId ?? 1,
+        name: nameController.text.trim(),
+        type: provider.selectedCategoryType,
+        description: descriptionController.text.trim(),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (!success) {
+      ScaffoldMessenger.of(this.context).showSnackBar(
+        SnackBar(content: Text(provider.errorMessage ?? 'Không thể lưu hạng mục')),
+      );
+    }
+  }
+
+  Future<void> _deleteCategory(
+    BuildContext context,
+    CustomizeProvider provider,
+    CategoryModel item,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Xóa hạng mục'),
+          content: Text('Bạn có chắc muốn xóa "${item.name}" không?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Xóa'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted || item.id == null) return;
+    await provider.deleteCategory(item.id!);
   }
 
   Widget _topBar(String title) {

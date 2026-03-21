@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/database/models/RecurringTransactionModel.dart';
 import '../../router/app_router.dart';
 import '../provider/customize_provider.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -86,18 +87,6 @@ class _RecurringTransactionsScreenState
                               ],
                             ),
                             const SizedBox(height: 14),
-                            TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Tìm kiếm...',
-                                filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.7),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
                             Expanded(
                               child: ListView.separated(
                                 itemCount: provider.recurringItems.length,
@@ -147,6 +136,31 @@ class _RecurringTransactionsScreenState
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
+                                        IconButton(
+                                          onPressed: () => Navigator.pushNamed(
+                                            context,
+                                            AppRouter.addRecurringTransaction,
+                                            arguments: RecurringTransactionModel(
+                                              id: item.id,
+                                              userId: item.userId,
+                                              categoryId: item.categoryId,
+                                              amount: item.amount,
+                                              startDate: item.startDate,
+                                              repeatCycle: item.repeatCycle,
+                                              note: item.title,
+                                            ),
+                                          ),
+                                          icon: const Icon(Icons.edit_outlined),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => _deleteRecurring(
+                                            context,
+                                            provider,
+                                            item.id,
+                                          ),
+                                          icon: const Icon(Icons.delete_outline),
+                                          color: Colors.red,
+                                        ),
                                       ],
                                     ),
                                   );
@@ -183,6 +197,35 @@ class _RecurringTransactionsScreenState
         ),
       ),
     );
+  }
+
+  Future<void> _deleteRecurring(
+    BuildContext context,
+    CustomizeProvider provider,
+    int id,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Xóa khoản định kỳ'),
+          content: const Text('Bạn có chắc muốn xóa khoản định kỳ này không?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Xóa'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+    await provider.deleteRecurringTransaction(id);
   }
 
   Widget _topBar(String title) {

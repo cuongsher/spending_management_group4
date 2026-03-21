@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/database/models/BudgetModel.dart';
+import '../../router/app_router.dart';
 import '../provider/budget_provider.dart';
+import '../widgets/app_bottom_nav.dart';
 
 class AddBudgetScreen extends StatefulWidget {
   const AddBudgetScreen({super.key});
@@ -20,11 +22,11 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
   final _startController = TextEditingController();
   final _endController = TextEditingController();
 
-  final List<String> _categories = const [
-    'Ăn Uống',
-    'Quà Tặng',
-    'Du Lịch',
-    'Mua Sắm',
+  final List<_BudgetCategoryOption> _categories = const [
+    _BudgetCategoryOption(id: 3, label: 'Ăn Uống'),
+    _BudgetCategoryOption(id: 4, label: 'Mua Sắm'),
+    _BudgetCategoryOption(id: 5, label: 'Thuê Nhà'),
+    _BudgetCategoryOption(id: 6, label: 'Giải Trí'),
   ];
   final List<String> _repeatOptions = const [
     'Mỗi Tháng',
@@ -32,8 +34,14 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
     'Mỗi Năm',
   ];
 
-  String _selectedCategory = 'Ăn Uống';
+  late _BudgetCategoryOption _selectedCategory;
   String _selectedRepeat = 'Mỗi Tháng';
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = _categories.first;
+  }
 
   @override
   void dispose() {
@@ -66,7 +74,7 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
 
     final budget = BudgetModel(
       userId: 1,
-      categoryId: _categories.indexOf(_selectedCategory) + 1,
+      categoryId: _selectedCategory.id,
       budgetName: _nameController.text.trim(),
       amount: double.tryParse(_amountController.text.trim()) ?? 0,
       startDate: _startController.text.trim(),
@@ -173,9 +181,10 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     _buildLabel('Hạng Mục Chi'),
-                                    _buildDropdown(
+                                    _buildDropdown<_BudgetCategoryOption>(
                                       value: _selectedCategory,
                                       items: _categories,
+                                      labelBuilder: (item) => item.label,
                                       onChanged: (value) {
                                         if (value == null) return;
                                         setState(() {
@@ -204,9 +213,10 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                                     _buildDateField(_endController),
                                     const SizedBox(height: 16),
                                     _buildLabel('Lặp Lại'),
-                                    _buildDropdown(
+                                    _buildDropdown<String>(
                                       value: _selectedRepeat,
                                       items: _repeatOptions,
+                                      labelBuilder: (item) => item,
                                       onChanged: (value) {
                                         if (value == null) return;
                                         setState(() {
@@ -261,7 +271,9 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            const _BudgetNavBar(),
+                            const AppBottomNav(
+                              currentRoute: AppRouter.customize,
+                            ),
                           ],
                         ),
                       ),
@@ -347,12 +359,13 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
     );
   }
 
-  Widget _buildDropdown({
-    required String value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
+  Widget _buildDropdown<T>({
+    required T value,
+    required List<T> items,
+    required String Function(T item) labelBuilder,
+    required ValueChanged<T?> onChanged,
   }) {
-    return DropdownButtonFormField<String>(
+    return DropdownButtonFormField<T>(
       initialValue: value,
       onChanged: onChanged,
       decoration: InputDecoration(
@@ -369,9 +382,9 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
       ),
       items: items
           .map(
-            (item) => DropdownMenuItem<String>(
+            (item) => DropdownMenuItem<T>(
               value: item,
-              child: Text(item),
+              child: Text(labelBuilder(item)),
             ),
           )
           .toList(),
@@ -379,71 +392,9 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
   }
 }
 
-class _BudgetNavBar extends StatelessWidget {
-  const _BudgetNavBar();
+class _BudgetCategoryOption {
+  const _BudgetCategoryOption({required this.id, required this.label});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDDF0DE),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _NavItem(icon: Icons.home_outlined, label: 'Home'),
-          _NavItem(icon: Icons.bar_chart_rounded, label: 'Báo Cáo'),
-          _NavItem(icon: Icons.sync_alt_rounded, label: 'Lịch Sử'),
-          _NavItem(
-            icon: Icons.layers_rounded,
-            label: 'Tùy Chỉnh',
-            selected: true,
-          ),
-          _NavItem(icon: Icons.person_outline_rounded, label: 'Cá Nhân'),
-          _NavItem(icon: Icons.card_giftcard_rounded, label: 'Thử Thách'),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.selected = false,
-  });
-
-  final IconData icon;
+  final int id;
   final String label;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF16C8A0) : Colors.transparent,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: const Color(0xFF163C3C),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF163C3C)),
-        ),
-      ],
-    );
-  }
 }

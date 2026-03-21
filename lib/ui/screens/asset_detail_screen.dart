@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../data/database/models/AssetModel.dart';
-import '../../router/app_router.dart';
-import '../widgets/app_bottom_nav.dart';
 
 class AssetDetailScreen extends StatelessWidget {
   const AssetDetailScreen({super.key});
@@ -62,7 +60,7 @@ class AssetDetailScreen extends StatelessWidget {
                     Expanded(
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
                         decoration: const BoxDecoration(
                           color: lightBg,
                           borderRadius: BorderRadius.only(
@@ -97,10 +95,6 @@ class AssetDetailScreen extends StatelessWidget {
                                   color: Color(0xFF1D6FFF),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 18),
-                            const AppBottomNav(
-                              currentRoute: AppRouter.customize,
                             ),
                           ],
                         ),

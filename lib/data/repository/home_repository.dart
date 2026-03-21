@@ -60,16 +60,16 @@ class HomeRepository {
 
   Future<HomeDashboardData> loadDashboard() async {
     final user = await source.getPrimaryUser();
-    final transactions = await source.getRecentTransactionsWithCategory();
-    final budgets = await source.getBudgets();
+    final allTransactions = await source.getTransactionsWithCategory();
+    final recentTransactions = await source.getTransactionsWithCategory(limit: 3);
+    final budgets = await source.getBudgets(limit: 3);
     final notifications = await source.getUnreadNotifications();
     final breakdownRows = await source.getExpenseBreakdown();
 
     double totalIncome = 0;
     double totalExpense = 0;
 
-    final historyItems = <HomeHistoryItem>[];
-    for (final row in transactions) {
+    for (final row in allTransactions) {
       final isExpense = row['type'] == 'expense';
       final amount = (row['amount'] as num).toDouble();
       if (isExpense) {
@@ -77,16 +77,19 @@ class HomeRepository {
       } else {
         totalIncome += amount;
       }
-      historyItems.add(
-        HomeHistoryItem(
-          title: (row['category_name'] as String?) ?? 'Khác',
-          subtitle: (row['date'] as String?) ?? '',
-          periodLabel: isExpense ? 'Chi tiêu' : 'Thu nhập',
-          amount: amount,
-          isExpense: isExpense,
-        ),
-      );
     }
+
+    final historyItems = recentTransactions.map((row) {
+      final isExpense = row['type'] == 'expense';
+      final amount = (row['amount'] as num).toDouble();
+      return HomeHistoryItem(
+        title: (row['category_name'] as String?) ?? 'Khác',
+        subtitle: (row['date'] as String?) ?? '',
+        periodLabel: isExpense ? 'Chi tiêu' : 'Thu nhập',
+        amount: amount,
+        isExpense: isExpense,
+      );
+    }).toList();
 
     final totalExpenseAmount = breakdownRows.fold<double>(
       0,
@@ -110,7 +113,7 @@ class HomeRepository {
       totalIncome: totalIncome,
       totalExpense: totalExpense,
       balance: totalIncome - totalExpense,
-      historyItems: historyItems.take(3).toList(),
+      historyItems: historyItems,
       budgets: budgets,
       breakdown: breakdown.take(4).toList(),
       notifications: notifications,

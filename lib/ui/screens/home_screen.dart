@@ -448,15 +448,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _budgetSection(BuildContext context, List<BudgetModel> budgets) {
+    final previewBudgets = budgets.take(3).toList();
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
-        children: budgets
-            .map(
+      child: previewBudgets.isEmpty
+          ? const Text('Chưa có hạn mức chi tiêu')
+          : Column(
+              children: previewBudgets
+                  .map(
               (budget) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
@@ -487,8 +491,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             )
-            .toList(),
-      ),
+                  .toList(),
+            ),
     );
   }
 }
