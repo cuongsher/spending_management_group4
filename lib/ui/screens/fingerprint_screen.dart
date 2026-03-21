@@ -77,7 +77,7 @@ class FingerprintScreen extends StatelessWidget {
                               onPressed: () {
                                 Navigator.pushReplacementNamed(
                                   context,
-                                  AppRouter.budgetList,
+                                  AppRouter.home,
                                 );
                               },
                               backgroundColor: const Color(0xFFD7EDD6),

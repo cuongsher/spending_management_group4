@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../data/database/models/UserModel.dart';
 import '../../data/repository/auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -10,6 +11,9 @@ class AuthProvider extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   String? _resetEmail;
+  UserModel? currentUser;
+
+  int? get currentUserId => currentUser?.id ?? repository.currentUserId;
 
   Future<bool> login(String email, String password) async {
     isLoading = true;
@@ -17,12 +21,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final success = await repository.login(email, password);
-      if (!success) {
+      final user = await repository.login(email, password);
+      if (user == null) {
         errorMessage = 'Email hoặc mật khẩu không đúng';
+        return false;
       }
-      return success;
-    } catch (e) {
+      currentUser = user;
+      return true;
+    } catch (_) {
       errorMessage = 'Có lỗi xảy ra khi đăng nhập';
       return false;
     } finally {
@@ -72,7 +78,7 @@ class AuthProvider extends ChangeNotifier {
       }
 
       return success;
-    } catch (e) {
+    } catch (_) {
       errorMessage = 'Có lỗi xảy ra khi đăng ký';
       return false;
     } finally {
@@ -94,7 +100,7 @@ class AuthProvider extends ChangeNotifier {
       }
       _resetEmail = email;
       return true;
-    } catch (e) {
+    } catch (_) {
       errorMessage = 'Có lỗi xảy ra';
       return false;
     } finally {
@@ -128,12 +134,18 @@ class AuthProvider extends ChangeNotifier {
         email: _resetEmail!,
         newPassword: newPassword,
       );
-    } catch (e) {
+    } catch (_) {
       errorMessage = 'Không thể đổi mật khẩu';
       return false;
     } finally {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  void logout() {
+    currentUser = null;
+    repository.logout();
+    notifyListeners();
   }
 }

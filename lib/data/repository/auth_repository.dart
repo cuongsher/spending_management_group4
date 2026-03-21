@@ -1,11 +1,13 @@
 import '../sources/auth_source.dart';
 
+import '../database/models/UserModel.dart';
+
 class AuthRepository {
   final AuthSource source;
 
   AuthRepository(this.source);
 
-  Future<bool> login(String email, String password) {
+  Future<UserModel?> login(String email, String password) {
     return source.login(email, password);
   }
 
@@ -34,5 +36,11 @@ class AuthRepository {
     required String newPassword,
   }) {
     return source.resetPassword(email: email, newPassword: newPassword);
+  }
+
+  int? get currentUserId => source.currentUserId;
+
+  void logout() {
+    source.logout();
   }
 }

@@ -4,7 +4,9 @@ import '../database/database_helper.dart';
 import '../database/models/UserModel.dart';
 
 class AuthSource {
-  Future<bool> login(String email, String password) async {
+  int? currentUserId;
+
+  Future<UserModel?> login(String email, String password) async {
     final Database db = await DatabaseHelper.instance.database;
 
     final result = await db.query(
@@ -13,7 +15,11 @@ class AuthSource {
       whereArgs: [email, password],
     );
 
-    return result.isNotEmpty;
+    if (result.isEmpty) return null;
+
+    final user = UserModel.fromMap(result.first);
+    currentUserId = user.id;
+    return user;
   }
 
   Future<bool> register({
@@ -42,7 +48,8 @@ class AuthSource {
       createdAt: DateTime.now().toIso8601String(),
     );
 
-    await db.insert('User', user.toMap());
+    final id = await db.insert('User', user.toMap());
+    currentUserId = id;
     return true;
   }
 
@@ -72,5 +79,9 @@ class AuthSource {
     );
 
     return count > 0;
+  }
+
+  void logout() {
+    currentUserId = null;
   }
 }
