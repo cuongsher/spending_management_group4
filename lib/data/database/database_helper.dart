@@ -2,14 +2,12 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
-
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
 
   DatabaseHelper._init();
 
   Future<Database> get database async {
-
     if (_database != null) return _database!;
 
     final dbPath = await getDatabasesPath();
@@ -19,7 +17,6 @@ class DatabaseHelper {
       path,
       version: 1,
       onCreate: (db, version) async {
-
         // USER
         await db.execute('''
         CREATE TABLE User(
@@ -59,20 +56,29 @@ class DatabaseHelper {
         ''');
 
         // TRANSACTION
+        // TRANSACTION (UPDATED - MERGED)
         await db.execute('''
-        CREATE TABLE TransactionTable(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER,
-          category_id INTEGER,
-          type TEXT,
-          amount REAL,
-          date TEXT,
-          address TEXT,
-          note TEXT,
-          FOREIGN KEY(user_id) REFERENCES User(id),
-          FOREIGN KEY(category_id) REFERENCES Category(id)
-        )
-        ''');
+CREATE TABLE TransactionTable(
+  id TEXT PRIMARY KEY,
+  user_id INTEGER,
+  type TEXT NOT NULL,
+  category TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  date TEXT NOT NULL,
+  note TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES User(id)
+)
+''');
+
+        // INDEX (tối ưu query giống AppDatabase)
+        await db.execute(
+          'CREATE INDEX idx_transaction_date ON TransactionTable(date)',
+        );
+        await db.execute(
+          'CREATE INDEX idx_transaction_type ON TransactionTable(type)',
+        );
 
         // BUDGET
         await db.execute('''
@@ -141,7 +147,6 @@ class DatabaseHelper {
           FOREIGN KEY(user_id) REFERENCES User(id)
         )
         ''');
-
       },
     );
 
