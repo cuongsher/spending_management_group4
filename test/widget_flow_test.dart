@@ -8,17 +8,20 @@ import 'package:spending_management_group4/data/repository/customize_repository.
 import 'package:spending_management_group4/data/repository/history_repository.dart';
 import 'package:spending_management_group4/data/repository/profile_repository.dart';
 import 'package:spending_management_group4/data/repository/report_repository.dart';
+import 'package:spending_management_group4/data/repository/transaction_repository.dart';
 import 'package:spending_management_group4/data/sources/auth_source.dart';
 import 'package:spending_management_group4/data/sources/customize_source.dart';
 import 'package:spending_management_group4/data/sources/history_source.dart';
 import 'package:spending_management_group4/data/sources/profile_source.dart';
 import 'package:spending_management_group4/data/sources/report_source.dart';
+import 'package:spending_management_group4/data/sources/transaction_source.dart';
 import 'package:spending_management_group4/router/app_router.dart';
 import 'package:spending_management_group4/ui/provider/auth_provider.dart';
 import 'package:spending_management_group4/ui/provider/customize_provider.dart';
 import 'package:spending_management_group4/ui/provider/history_provider.dart';
 import 'package:spending_management_group4/ui/provider/profile_provider.dart';
 import 'package:spending_management_group4/ui/provider/report_provider.dart';
+import 'package:spending_management_group4/ui/provider/transaction_provider.dart';
 import 'package:spending_management_group4/ui/screens/forgot_password_screen.dart';
 import 'package:spending_management_group4/ui/screens/login_screen.dart';
 import 'package:spending_management_group4/ui/screens/new_password_screen.dart';
@@ -120,6 +123,11 @@ Widget _buildApp(String route, {AuthRepository? authRepository}) {
       ),
       ChangeNotifierProvider(
         create: (_) => ProfileProvider(_FakeProfileRepository()),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => TransactionProvider(
+          TransactionRepository(TransactionSource()),
+        ),
       ),
     ],
     child: MaterialApp(initialRoute: route, routes: AppRouter.routes),

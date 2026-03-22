@@ -4,19 +4,23 @@ import 'package:spending_management_group4/data/database/models/BudgetModel.dart
 import 'package:spending_management_group4/data/database/models/CategoryModel.dart';
 import 'package:spending_management_group4/data/database/models/RecurringTransactionModel.dart';
 import 'package:spending_management_group4/data/database/models/ShoppingListModel.dart';
+import 'package:spending_management_group4/data/database/models/TransactionModel.dart';
 import 'package:spending_management_group4/data/database/models/UserModel.dart';
 import 'package:spending_management_group4/data/repository/auth_repository.dart';
 import 'package:spending_management_group4/data/repository/budget_repository.dart';
 import 'package:spending_management_group4/data/repository/customize_repository.dart';
 import 'package:spending_management_group4/data/repository/profile_repository.dart';
+import 'package:spending_management_group4/data/repository/transaction_repository.dart';
 import 'package:spending_management_group4/data/sources/auth_source.dart';
 import 'package:spending_management_group4/data/sources/budget_source.dart';
 import 'package:spending_management_group4/data/sources/customize_source.dart';
 import 'package:spending_management_group4/data/sources/profile_source.dart';
+import 'package:spending_management_group4/data/sources/transaction_source.dart';
 import 'package:spending_management_group4/ui/provider/auth_provider.dart';
 import 'package:spending_management_group4/ui/provider/budget_provider.dart';
 import 'package:spending_management_group4/ui/provider/customize_provider.dart';
 import 'package:spending_management_group4/ui/provider/profile_provider.dart';
+import 'package:spending_management_group4/ui/provider/transaction_provider.dart';
 
 void main() {
   group('AuthProvider validation and flow', () {
@@ -274,6 +278,30 @@ void main() {
 
       expect(success, isFalse);
       expect(provider.user, isNotNull);
+    });
+  });
+
+  group('TransactionProvider flow', () {
+    test('load categories and add transaction works', () async {
+      final provider = TransactionProvider(FakeTransactionRepository());
+
+      await provider.loadCategories(type: 'expense');
+      expect(provider.categories, isNotEmpty);
+
+      final success = await provider.addTransaction(
+        TransactionModel(
+          userId: 1,
+          categoryId: provider.categories.first.id!,
+          type: 'expense',
+          amount: 120,
+          date: '2026-03-22',
+          address: 'Test address',
+          note: 'Test note',
+        ),
+      );
+
+      expect(success, isTrue);
+      expect(provider.isLoading, isFalse);
     });
   });
 }
@@ -590,6 +618,38 @@ class FakeProfileRepository extends ProfileRepository {
     required int userId,
     required String password,
   }) async => deleteSuccess;
+}
+
+class FakeTransactionRepository extends TransactionRepository {
+  FakeTransactionRepository() : super(TransactionSource());
+
+  final List<CategoryModel> _categories = [
+    CategoryModel(
+      id: 1,
+      userId: 1,
+      name: 'Lương',
+      type: 'income',
+      description: 'Thu nhập',
+    ),
+    CategoryModel(
+      id: 2,
+      userId: 1,
+      name: 'Ăn Uống',
+      type: 'expense',
+      description: 'Chi ăn uống',
+    ),
+  ];
+  final List<TransactionModel> _transactions = [];
+
+  @override
+  Future<List<CategoryModel>> getCategoriesByType(String type) async {
+    return _categories.where((item) => item.type == type).toList();
+  }
+
+  @override
+  Future<void> addTransaction(TransactionModel model) async {
+    _transactions.add(model);
+  }
 }
 
 UserModel _demoUser({required int id}) {

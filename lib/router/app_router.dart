@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../ui/screens/add_budget_screen.dart';
 import '../ui/screens/add_recurring_transaction_screen.dart';
+import '../ui/screens/add_transaction_screen.dart';
 import '../ui/screens/asset_detail_screen.dart';
 import '../ui/screens/asset_list_screen.dart';
 import '../ui/screens/budget_detail_screen.dart';
@@ -60,6 +61,7 @@ class AppRouter {
   static const String assetDetail = '/customize/assets/detail';
   static const String recurringTransactions = '/customize/recurring';
   static const String addRecurringTransaction = '/customize/recurring/add';
+  static const String addTransaction = '/transactions/add';
   static const String notifications = '/notifications';
   static const String budgetList = '/budgets';
   static const String budgetDetail = '/budgets/detail';
@@ -93,6 +95,7 @@ class AppRouter {
     assetDetail: (_) => const AssetDetailScreen(),
     recurringTransactions: (_) => const RecurringTransactionsScreen(),
     addRecurringTransaction: (_) => const AddRecurringTransactionScreen(),
+    addTransaction: (_) => const AddTransactionScreen(),
     notifications: (_) => const NotificationScreen(),
     budgetList: (_) => const BudgetListScreen(),
     budgetDetail: (_) => const BudgetDetailScreen(),

@@ -92,6 +92,41 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       ],
                                     ),
                                   ),
+                                  Center(
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final created = await Navigator.pushNamed(
+                                              context,
+                                              AppRouter.addTransaction,
+                                            )
+                                            as bool?;
+                                        if (created == true && mounted) {
+                                          await this.context
+                                              .read<HistoryProvider>()
+                                              .loadHistory(
+                                                filter: provider.selectedFilter,
+                                              );
+                                        }
+                                      },
+                                      child: Container(
+                                        width: 72,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                            color: const Color(0xFF143C3C),
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.add,
+                                          color: Color(0xFF143C3C),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                   const SizedBox(height: 8),
                                   const AppBottomNav(
                                     currentRoute: AppRouter.history,

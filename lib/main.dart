@@ -10,6 +10,7 @@ import 'data/repository/history_repository.dart';
 import 'data/repository/notification_repository.dart';
 import 'data/repository/profile_repository.dart';
 import 'data/repository/report_repository.dart';
+import 'data/repository/transaction_repository.dart';
 import 'data/sources/auth_source.dart';
 import 'data/sources/budget_source.dart';
 import 'data/sources/customize_source.dart';
@@ -18,6 +19,7 @@ import 'data/sources/history_source.dart';
 import 'data/sources/notification_source.dart';
 import 'data/sources/profile_source.dart';
 import 'data/sources/report_source.dart';
+import 'data/sources/transaction_source.dart';
 import 'router/app_router.dart';
 import 'ui/provider/auth_provider.dart';
 import 'ui/provider/budget_provider.dart';
@@ -27,6 +29,7 @@ import 'ui/provider/history_provider.dart';
 import 'ui/provider/notification_provider.dart';
 import 'ui/provider/profile_provider.dart';
 import 'ui/provider/report_provider.dart';
+import 'ui/provider/transaction_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +63,10 @@ class MoneyLoopApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<ReportProvider>(
           create: (_) => ReportProvider(ReportRepository(ReportSource())),
+        ),
+        ChangeNotifierProvider<TransactionProvider>(
+          create: (_) =>
+              TransactionProvider(TransactionRepository(TransactionSource())),
         ),
         ChangeNotifierProvider<NotificationProvider>(
           create: (_) => NotificationProvider(

@@ -1,4 +1,5 @@
 import '../database/models/BudgetModel.dart';
+import '../database/models/CategoryModel.dart';
 import '../sources/budget_source.dart';
 
 class BudgetExpenseItem {
@@ -40,6 +41,18 @@ class BudgetRepository {
 
   Future<void> addBudget(BudgetModel budget) {
     return source.addBudget(budget);
+  }
+
+  Future<void> updateBudget(BudgetModel budget) {
+    return source.updateBudget(budget);
+  }
+
+  Future<void> deleteBudget(int id) {
+    return source.deleteBudget(id);
+  }
+
+  Future<List<CategoryModel>> getExpenseCategories() {
+    return source.getExpenseCategories();
   }
 
   Future<Map<int, double>> getSpentByCategory() {

@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../database/database_helper.dart';
 import '../database/models/BudgetModel.dart';
+import '../database/models/CategoryModel.dart';
 
 class BudgetSource {
   Future<List<BudgetModel>> getBudgets() async {
@@ -14,6 +15,27 @@ class BudgetSource {
   Future<void> addBudget(BudgetModel budget) async {
     final Database db = await DatabaseHelper.instance.database;
     await db.insert('Budget', budget.toMap());
+  }
+
+  Future<void> updateBudget(BudgetModel budget) async {
+    final Database db = await DatabaseHelper.instance.database;
+    await db.update('Budget', budget.toMap(), where: 'id = ?', whereArgs: [budget.id]);
+  }
+
+  Future<void> deleteBudget(int id) async {
+    final Database db = await DatabaseHelper.instance.database;
+    await db.delete('Budget', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<CategoryModel>> getExpenseCategories() async {
+    final Database db = await DatabaseHelper.instance.database;
+    final result = await db.query(
+      'Category',
+      where: 'type = ?',
+      whereArgs: ['expense'],
+      orderBy: 'name ASC',
+    );
+    return result.map(CategoryModel.fromMap).toList();
   }
 
   Future<Map<int, double>> getSpentByCategory() async {

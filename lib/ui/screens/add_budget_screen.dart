@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/database/models/BudgetModel.dart';
+import '../../data/database/models/CategoryModel.dart';
 import '../../router/app_router.dart';
 import '../provider/budget_provider.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -22,25 +23,32 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
   final _startController = TextEditingController();
   final _endController = TextEditingController();
 
-  final List<_BudgetCategoryOption> _categories = const [
-    _BudgetCategoryOption(id: 3, label: 'Ăn Uống'),
-    _BudgetCategoryOption(id: 4, label: 'Mua Sắm'),
-    _BudgetCategoryOption(id: 5, label: 'Thuê Nhà'),
-    _BudgetCategoryOption(id: 6, label: 'Giải Trí'),
-  ];
   final List<String> _repeatOptions = const [
     'Mỗi Tháng',
     'Mỗi Ngày',
     'Mỗi Năm',
   ];
 
-  late _BudgetCategoryOption _selectedCategory;
+  CategoryModel? _selectedCategory;
   String _selectedRepeat = 'Mỗi Tháng';
+  BudgetModel? _initialBudget;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _selectedCategory = _categories.first;
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    _initialBudget = ModalRoute.of(context)?.settings.arguments as BudgetModel?;
+    final provider = context.read<BudgetProvider>();
+    provider.loadBudgets();
+    if (_initialBudget != null) {
+      _nameController.text = _initialBudget!.budgetName;
+      _amountController.text = _initialBudget!.amount.toString();
+      _startController.text = _initialBudget!.startDate;
+      _endController.text = _initialBudget!.endDate;
+      _selectedRepeat = _toRepeatLabel(_initialBudget!.repeatType);
+    }
   }
 
   @override
@@ -50,6 +58,13 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
     _startController.dispose();
     _endController.dispose();
     super.dispose();
+  }
+
+  String _toRepeatLabel(String value) {
+    final lower = value.toLowerCase();
+    if (lower.contains('day') || lower.contains('ngày')) return 'Mỗi Ngày';
+    if (lower.contains('year') || lower.contains('năm')) return 'Mỗi Năm';
+    return 'Mỗi Tháng';
   }
 
   Future<void> _pickDate(TextEditingController controller) async {
@@ -71,10 +86,18 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
 
   Future<void> _save() async {
     final provider = context.read<BudgetProvider>();
+    final category = _selectedCategory;
+    if (category == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn hạng mục chi')),
+      );
+      return;
+    }
 
     final budget = BudgetModel(
-      userId: 1,
-      categoryId: _selectedCategory.id,
+      id: _initialBudget?.id,
+      userId: _initialBudget?.userId ?? 1,
+      categoryId: category.id!,
       budgetName: _nameController.text.trim(),
       amount: double.tryParse(_amountController.text.trim()) ?? 0,
       startDate: _startController.text.trim(),
@@ -82,19 +105,19 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
       repeatType: _selectedRepeat.toLowerCase(),
     );
 
-    final success = await provider.addBudget(budget);
+    final success = _initialBudget == null
+        ? await provider.addBudget(budget)
+        : await provider.updateBudget(budget);
 
     if (!mounted) return;
 
     if (success) {
-      Navigator.pop(context);
+      Navigator.pop(context, true);
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(provider.errorMessage ?? 'Không thể lưu hạn mức'),
-      ),
+      SnackBar(content: Text(provider.errorMessage ?? 'Không thể lưu hạn mức')),
     );
   }
 
@@ -104,7 +127,7 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
     _startController.clear();
     _endController.clear();
     setState(() {
-      _selectedCategory = _categories.first;
+      _selectedCategory = null;
       _selectedRepeat = _repeatOptions.first;
     });
   }
@@ -112,6 +135,15 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BudgetProvider>();
+    final categories = provider.expenseCategories;
+    if (_selectedCategory == null && categories.isNotEmpty) {
+      _selectedCategory = _initialBudget == null
+          ? categories.first
+          : categories.cast<CategoryModel?>().firstWhere(
+                (item) => item?.id == _initialBudget!.categoryId,
+                orElse: () => categories.first,
+              );
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey.shade300,
@@ -135,11 +167,11 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                             icon: const Icon(Icons.arrow_back_ios_new_rounded),
                             color: Colors.white,
                           ),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Thêm Hạn Mức',
+                              _initialBudget == null ? 'Thêm Hạn Mức' : 'Cập Nhật Hạn Mức',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF113939),
@@ -181,12 +213,20 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     _buildLabel('Hạng Mục Chi'),
-                                    _buildDropdown<_BudgetCategoryOption>(
-                                      value: _selectedCategory,
-                                      items: _categories,
-                                      labelBuilder: (item) => item.label,
+                                    DropdownButtonFormField<CategoryModel>(
+                                      initialValue: categories.contains(_selectedCategory)
+                                          ? _selectedCategory
+                                          : null,
+                                      decoration: _inputDecoration(),
+                                      items: categories
+                                          .map(
+                                            (item) => DropdownMenuItem(
+                                              value: item,
+                                              child: Text(item.name),
+                                            ),
+                                          )
+                                          .toList(),
                                       onChanged: (value) {
-                                        if (value == null) return;
                                         setState(() {
                                           _selectedCategory = value;
                                         });
@@ -213,16 +253,23 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                                     _buildDateField(_endController),
                                     const SizedBox(height: 16),
                                     _buildLabel('Lặp Lại'),
-                                    _buildDropdown<String>(
-                                      value: _selectedRepeat,
-                                      items: _repeatOptions,
-                                      labelBuilder: (item) => item,
+                                    DropdownButtonFormField<String>(
+                                      initialValue: _selectedRepeat,
                                       onChanged: (value) {
                                         if (value == null) return;
                                         setState(() {
                                           _selectedRepeat = value;
                                         });
                                       },
+                                      decoration: _inputDecoration(),
+                                      items: _repeatOptions
+                                          .map(
+                                            (item) => DropdownMenuItem<String>(
+                                              value: item,
+                                              child: Text(item),
+                                            ),
+                                          )
+                                          .toList(),
                                     ),
                                     const SizedBox(height: 18),
                                     Row(
@@ -239,7 +286,7 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
                                                     BorderRadius.circular(24),
                                               ),
                                             ),
-                                            child: const Text('Xóa'),
+                                            child: const Text('Xóa Form'),
                                           ),
                                         ),
                                         const SizedBox(width: 14),
@@ -310,23 +357,7 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: const Color(0xFFDFF1E1),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: primary),
-        ),
-      ),
+      decoration: _inputDecoration().copyWith(hintText: hint),
     );
   }
 
@@ -335,66 +366,32 @@ class _AddBudgetScreenState extends State<AddBudgetScreen> {
       controller: controller,
       readOnly: true,
       onTap: () => _pickDate(controller),
-      decoration: InputDecoration(
+      decoration: _inputDecoration().copyWith(
         hintText: '15/10/2024',
-        filled: true,
-        fillColor: const Color(0xFFDFF1E1),
         suffixIcon: IconButton(
           onPressed: () => _pickDate(controller),
           icon: const Icon(Icons.calendar_today_rounded, size: 18),
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: primary),
-        ),
       ),
     );
   }
 
-  Widget _buildDropdown<T>({
-    required T value,
-    required List<T> items,
-    required String Function(T item) labelBuilder,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: const Color(0xFFDFF1E1),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide.none,
-        ),
+  InputDecoration _inputDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: const Color(0xFFDFF1E1),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide.none,
       ),
-      items: items
-          .map(
-            (item) => DropdownMenuItem<T>(
-              value: item,
-              child: Text(labelBuilder(item)),
-            ),
-          )
-          .toList(),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: primary),
+      ),
     );
   }
-}
-
-class _BudgetCategoryOption {
-  const _BudgetCategoryOption({required this.id, required this.label});
-
-  final int id;
-  final String label;
 }

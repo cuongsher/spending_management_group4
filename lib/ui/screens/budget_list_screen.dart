@@ -123,6 +123,24 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
                                                     arguments: budget,
                                                   );
                                                 },
+                                                onEdit: () async {
+                                                  final updated =
+                                                      await Navigator.pushNamed(
+                                                            context,
+                                                            AppRouter.addBudget,
+                                                            arguments: budget,
+                                                          )
+                                                          as bool?;
+                                                  if (updated == true && mounted) {
+                                                    await this.context
+                                                        .read<BudgetProvider>()
+                                                        .loadBudgets();
+                                                  }
+                                                },
+                                                onDelete: () => _deleteBudget(
+                                                  context,
+                                                  budget,
+                                                ),
                                               );
                                             },
                                           ),
@@ -131,11 +149,18 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
                                   SizedBox(
                                     width: 150,
                                     child: ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          AppRouter.addBudget,
-                                        );
+                                      onPressed: () async {
+                                        final created =
+                                            await Navigator.pushNamed(
+                                                  context,
+                                                  AppRouter.addBudget,
+                                                )
+                                                as bool?;
+                                        if (created == true && mounted) {
+                                          await this.context
+                                              .read<BudgetProvider>()
+                                              .loadBudgets();
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: primary,
@@ -166,6 +191,32 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
       ),
     );
   }
+
+  Future<void> _deleteBudget(BuildContext context, BudgetModel budget) async {
+    final provider = context.read<BudgetProvider>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Xóa hạn mức'),
+          content: Text('Bạn có chắc muốn xóa "${budget.budgetName}" không?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Xóa'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted || budget.id == null) return;
+    await provider.deleteBudget(budget.id!);
+  }
 }
 
 class _BudgetTile extends StatelessWidget {
@@ -173,11 +224,15 @@ class _BudgetTile extends StatelessWidget {
     required this.budget,
     required this.spentAmount,
     required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final BudgetModel budget;
   final double spentAmount;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -205,15 +260,30 @@ class _BudgetTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  budget.budgetName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF133C3C),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        budget.budgetName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF133C3C),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      color: const Color(0xFF153C3C),
+                    ),
+                    IconButton(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      color: Colors.red,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
                 Text(
                   '${budget.startDate} - ${budget.endDate}',
                   style: const TextStyle(

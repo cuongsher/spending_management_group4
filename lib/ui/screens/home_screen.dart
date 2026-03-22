@@ -211,11 +211,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 20),
                                     Center(
                                       child: GestureDetector(
-                                        onTap: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            AppRouter.addBudget,
-                                          );
+                                        onTap: () async {
+                                          final created = await Navigator.pushNamed(
+                                                context,
+                                                AppRouter.addTransaction,
+                                              )
+                                              as bool?;
+                                          if (created == true && mounted) {
+                                            await this.context
+                                                .read<HomeProvider>()
+                                                .loadDashboard();
+                                          }
                                         },
                                         child: Container(
                                           width: 72,
