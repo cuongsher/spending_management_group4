@@ -44,20 +44,28 @@ class CustomizeRepository {
   final CustomizeSource source;
 
   Future<CustomizeDashboardData> loadDashboard() async {
-    final expenseCategories = await source.getCategories(type: 'expense');
-    final assets = await source.getAssets();
-    final totalBalance = assets.fold<double>(
-      0,
-      (sum, item) => sum + item.amount,
-    );
-    final totalExpense = expenseCategories.length * 100.0;
+    final transactions = await source.getTransactions();
+    double totalIncome = 0;
+    double totalExpense = 0;
+
+    for (final row in transactions) {
+      final isExpense = row['type'] == 'expense';
+      final amount = (row['amount'] as num?)?.toDouble() ?? 0;
+      if (isExpense) {
+        totalExpense += amount;
+      } else {
+        totalIncome += amount;
+      }
+    }
+
+    final totalBalance = totalIncome - totalExpense;
 
     return CustomizeDashboardData(
       totalBalance: totalBalance,
       totalExpense: totalExpense,
-      spendingProgress: totalBalance == 0
+      spendingProgress: totalIncome == 0
           ? 0
-          : (totalExpense / totalBalance).clamp(0.0, 1.0),
+          : (totalExpense / totalIncome).clamp(0.0, 1.0),
     );
   }
 

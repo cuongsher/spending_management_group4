@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/repository/history_repository.dart';
 import '../../router/app_router.dart';
 import '../provider/history_provider.dart';
-import '../widgets/app_bottom_nav.dart';
+import '../widgets/app_primary_shell.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -14,9 +14,6 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  static const Color primary = Color(0xFF16C8A0);
-  static const Color lightBg = Color(0xFFEAF6EE);
-
   @override
   void initState() {
     super.initState();
@@ -31,121 +28,68 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final provider = context.watch<HistoryProvider>();
     final dashboard = provider.dashboard;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade300,
-      body: SafeArea(
-        child: Center(
-          child: SizedBox(
-            width: 390,
-            height: 800,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: Scaffold(
-                backgroundColor: primary,
-                body: Column(
-                  children: [
-                    _buildHeader(dashboard),
-                    Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-                        decoration: const BoxDecoration(
-                          color: lightBg,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                          ),
-                        ),
-                        child: provider.isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : dashboard == null
-                            ? Center(
-                                child: Text(
-                                  provider.errorMessage ??
-                                      'Không có dữ liệu lịch sử',
-                                ),
-                              )
-                            : Column(
-                                children: [
-                                  _filterRow(context, provider.selectedFilter),
-                                  const SizedBox(height: 14),
-                                  Expanded(
-                                    child: ListView(
-                                      children: [
-                                        for (final section
-                                            in dashboard.sections) ...[
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              bottom: 10,
-                                            ),
-                                            child: Text(
-                                              section.title,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                          ...section.items.map(_historyTile),
-                                          const SizedBox(height: 8),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                  Center(
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        final created = await Navigator.pushNamed(
-                                              context,
-                                              AppRouter.addTransaction,
-                                            )
-                                            as bool?;
-                                        if (created == true && mounted) {
-                                          await this.context
-                                              .read<HistoryProvider>()
-                                              .loadHistory(
-                                                filter: provider.selectedFilter,
-                                              );
-                                        }
-                                      },
-                                      child: Container(
-                                        width: 72,
-                                        height: 38,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          border: Border.all(
-                                            color: const Color(0xFF143C3C),
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.add,
-                                          color: Color(0xFF143C3C),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const AppBottomNav(
-                                    currentRoute: AppRouter.history,
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    if (provider.isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade300,
+        body: const SafeArea(child: Center(child: CircularProgressIndicator())),
+      );
+    }
+
+    if (dashboard == null) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade300,
+        body: SafeArea(
+          child: Center(
+            child: Text(provider.errorMessage ?? 'Không có dữ liệu lịch sử'),
           ),
         ),
+      );
+    }
+
+    return AppPrimaryShell(
+      currentRoute: AppRouter.history,
+      header: _buildHeader(dashboard),
+      showAddButton: true,
+      onAddTap: () async {
+        final created =
+            await Navigator.pushNamed(context, AppRouter.addTransaction)
+                as bool?;
+        if (created == true && mounted) {
+          await this.context.read<HistoryProvider>().loadHistory(
+            filter: provider.selectedFilter,
+          );
+        }
+      },
+      body: Column(
+        children: [
+          _filterRow(context, provider.selectedFilter),
+          const SizedBox(height: 14),
+          Expanded(
+            child: ListView(
+              children: [
+                for (final section in dashboard.sections) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      section.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  ...section.items.map(_historyTile),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(HistoryDashboardData? dashboard) {
+  Widget _buildHeader(HistoryDashboardData dashboard) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 26, 24, 18),
       child: Column(
@@ -190,7 +134,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 const Text('Tổng Dư'),
                 const SizedBox(height: 4),
                 Text(
-                  '${(dashboard?.balance ?? 0).toStringAsFixed(2)} VND',
+                  '${dashboard.balance.toStringAsFixed(2)} VND',
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
@@ -206,7 +150,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Expanded(
                 child: _summaryCard(
                   'Tổng Thu',
-                  dashboard?.totalIncome ?? 0,
+                  dashboard.totalIncome,
                   const Color(0xFF16C8A0),
                 ),
               ),
@@ -214,7 +158,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Expanded(
                 child: _summaryCard(
                   'Tổng Chi',
-                  dashboard?.totalExpense ?? 0,
+                  dashboard.totalExpense,
                   const Color(0xFF164BFF),
                 ),
               ),

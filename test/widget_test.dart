@@ -22,6 +22,10 @@ import 'package:spending_management_group4/ui/provider/history_provider.dart';
 import 'package:spending_management_group4/ui/provider/profile_provider.dart';
 import 'package:spending_management_group4/ui/provider/report_provider.dart';
 import 'package:spending_management_group4/ui/provider/transaction_provider.dart';
+import 'package:spending_management_group4/ui/screens/customize_screen.dart';
+import 'package:spending_management_group4/ui/screens/history_screen.dart';
+import 'package:spending_management_group4/ui/screens/profile_screen.dart';
+import 'package:spending_management_group4/ui/screens/report_screen.dart';
 
 void main() {
   testWidgets('launch screen is shown on startup', (WidgetTester tester) async {
@@ -34,28 +38,28 @@ void main() {
     await tester.pumpWidget(_buildRouteApp(AppRouter.history));
     await tester.pump();
 
-    expect(find.text('Lịch Sử'), findsWidgets);
+    expect(find.byType(HistoryScreen), findsOneWidget);
   });
 
   testWidgets('report screen route builds', (WidgetTester tester) async {
     await tester.pumpWidget(_buildRouteApp(AppRouter.report));
     await tester.pump();
 
-    expect(find.text('Báo Cáo'), findsWidgets);
+    expect(find.byType(ReportScreen), findsOneWidget);
   });
 
   testWidgets('customize screen route builds', (WidgetTester tester) async {
     await tester.pumpWidget(_buildRouteApp(AppRouter.customize));
     await tester.pump();
 
-    expect(find.text('Tùy Chỉnh'), findsWidgets);
+    expect(find.byType(CustomizeScreen), findsOneWidget);
   });
 
   testWidgets('profile screen route builds', (WidgetTester tester) async {
     await tester.pumpWidget(_buildRouteApp(AppRouter.profile));
     await tester.pump();
 
-    expect(find.text('Cá Nhân'), findsWidgets);
+    expect(find.byType(ProfileScreen), findsOneWidget);
   });
 }
 

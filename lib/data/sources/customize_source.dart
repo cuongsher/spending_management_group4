@@ -7,6 +7,11 @@ import '../database/models/RecurringTransactionModel.dart';
 import '../database/models/ShoppingListModel.dart';
 
 class CustomizeSource {
+  Future<List<Map<String, dynamic>>> getTransactions() async {
+    final Database db = await DatabaseHelper.instance.database;
+    return db.query('TransactionTable', orderBy: 'date DESC, id DESC');
+  }
+
   Future<List<CategoryModel>> getCategories({String? type}) async {
     final Database db = await DatabaseHelper.instance.database;
     final result = await db.query(

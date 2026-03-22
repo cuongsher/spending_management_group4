@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../data/repository/report_repository.dart';
 import '../../router/app_router.dart';
 import '../provider/report_provider.dart';
-import '../widgets/app_bottom_nav.dart';
+import '../widgets/app_primary_shell.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -16,9 +16,6 @@ class ReportScreen extends StatefulWidget {
 }
 
 class _ReportScreenState extends State<ReportScreen> {
-  static const Color primary = Color(0xFF16C8A0);
-  static const Color lightBg = Color(0xFFEAF6EE);
-
   @override
   void initState() {
     super.initState();
@@ -33,108 +30,53 @@ class _ReportScreenState extends State<ReportScreen> {
     final provider = context.watch<ReportProvider>();
     final dashboard = provider.dashboard;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade300,
-      body: SafeArea(
-        child: Center(
-          child: SizedBox(
-            width: 390,
-            height: 800,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: Scaffold(
-                backgroundColor: primary,
-                body: Column(
-                  children: [
-                    _buildHeader(dashboard),
-                    Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-                        decoration: const BoxDecoration(
-                          color: lightBg,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                          ),
-                        ),
-                        child: provider.isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : dashboard == null
-                            ? Center(
-                                child: Text(
-                                  provider.errorMessage ??
-                                      'Không có dữ liệu báo cáo',
-                                ),
-                              )
-                            : SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    _periodRow(
-                                      context,
-                                      provider.selectedPeriod,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _chartCard(dashboard),
-                                    const SizedBox(height: 18),
-                                    _breakdownCard(dashboard),
-                                    const SizedBox(height: 18),
-                                    Center(
-                                      child: GestureDetector(
-                                        onTap: () async {
-                                          final created =
-                                              await Navigator.pushNamed(
-                                                    context,
-                                                    AppRouter.addTransaction,
-                                                  )
-                                                  as bool?;
-                                          if (created == true && mounted) {
-                                            await this.context
-                                                .read<ReportProvider>()
-                                                .loadReport(
-                                                  period:
-                                                      provider.selectedPeriod,
-                                                );
-                                          }
-                                        },
-                                        child: Container(
-                                          width: 72,
-                                          height: 38,
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            border: Border.all(
-                                              color: const Color(0xFF143C3C),
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: const Icon(
-                                            Icons.add,
-                                            color: Color(0xFF143C3C),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 18),
-                                    const AppBottomNav(
-                                      currentRoute: AppRouter.report,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    if (provider.isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade300,
+        body: const SafeArea(child: Center(child: CircularProgressIndicator())),
+      );
+    }
+
+    if (dashboard == null) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade300,
+        body: SafeArea(
+          child: Center(
+            child: Text(provider.errorMessage ?? 'Không có dữ liệu báo cáo'),
           ),
+        ),
+      );
+    }
+
+    return AppPrimaryShell(
+      currentRoute: AppRouter.report,
+      header: _buildHeader(dashboard),
+      showAddButton: true,
+      onAddTap: () async {
+        final created =
+            await Navigator.pushNamed(context, AppRouter.addTransaction)
+                as bool?;
+        if (created == true && mounted) {
+          await this.context.read<ReportProvider>().loadReport(
+            period: provider.selectedPeriod,
+          );
+        }
+      },
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _periodRow(context, provider.selectedPeriod),
+            const SizedBox(height: 16),
+            _chartCard(dashboard),
+            const SizedBox(height: 18),
+            _breakdownCard(dashboard),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(ReportDashboardData? dashboard) {
+  Widget _buildHeader(ReportDashboardData dashboard) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 26, 24, 20),
       child: Column(
@@ -154,8 +96,7 @@ class _ReportScreenState extends State<ReportScreen> {
               Expanded(
                 child: _summaryTile(
                   'Tổng Dư',
-                  (dashboard?.totalIncome ?? 0) -
-                      (dashboard?.totalExpense ?? 0),
+                  dashboard.totalIncome - dashboard.totalExpense,
                   Colors.white,
                 ),
               ),
@@ -163,7 +104,7 @@ class _ReportScreenState extends State<ReportScreen> {
               Expanded(
                 child: _summaryTile(
                   'Tổng Chi',
-                  dashboard?.totalExpense ?? 0,
+                  dashboard.totalExpense,
                   const Color(0xFF164BFF),
                 ),
               ),
@@ -174,7 +115,7 @@ class _ReportScreenState extends State<ReportScreen> {
             borderRadius: BorderRadius.circular(14),
             child: LinearProgressIndicator(
               minHeight: 18,
-              value: dashboard?.progress ?? 0,
+              value: dashboard.progress,
               backgroundColor: Colors.white,
               valueColor: const AlwaysStoppedAnimation(Color(0xFF153C3C)),
             ),

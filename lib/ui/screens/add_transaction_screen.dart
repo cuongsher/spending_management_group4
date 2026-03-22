@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../data/database/models/CategoryModel.dart';
 import '../../data/database/models/TransactionModel.dart';
+import '../provider/auth_provider.dart';
 import '../provider/transaction_provider.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -59,6 +60,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     return '${parts[2]}-${parts[1].padLeft(2, '0')}-${parts[0].padLeft(2, '0')}';
   }
 
+  double? _parseAmount(String text) {
+    final normalized = text.replaceAll(',', '').replaceAll(' ', '').trim();
+    return double.tryParse(normalized);
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -75,8 +81,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Future<void> _save() async {
+    final authProvider = context.read<AuthProvider>();
     final provider = context.read<TransactionProvider>();
     final category = _selectedCategory;
+    final amount = _parseAmount(_amountController.text);
+
     if (category == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn hạng mục')),
@@ -84,12 +93,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       return;
     }
 
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập số tiền hợp lệ')),
+      );
+      return;
+    }
+
     final success = await provider.addTransaction(
       TransactionModel(
-        userId: 1,
+        userId: authProvider.currentUserId ?? 1,
         categoryId: category.id!,
         type: _type,
-        amount: double.tryParse(_amountController.text.trim()) ?? 0,
+        amount: amount,
         date: _toIsoDate(_dateController.text.trim()),
         address: _addressController.text.trim(),
         note: _noteController.text.trim(),
@@ -103,7 +119,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(provider.errorMessage ?? 'Không thể lưu ghi chép')),
+      SnackBar(
+        content: Text(provider.errorMessage ?? 'Không thể lưu ghi chép'),
+      ),
     );
   }
 
@@ -207,10 +225,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                     DropdownButtonFormField<CategoryModel>(
                                       initialValue:
                                           categories.contains(_selectedCategory)
-                                              ? _selectedCategory
-                                              : (categories.isEmpty
-                                                  ? null
-                                                  : categories.first),
+                                          ? _selectedCategory
+                                          : (categories.isEmpty
+                                                ? null
+                                                : categories.first),
                                       decoration: _inputDecoration(),
                                       items: categories
                                           .map(

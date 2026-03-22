@@ -5,7 +5,7 @@ import '../../data/database/models/BudgetModel.dart';
 import '../../data/repository/home_repository.dart';
 import '../../router/app_router.dart';
 import '../provider/home_provider.dart';
-import '../widgets/app_bottom_nav.dart';
+import '../widgets/app_primary_shell.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,9 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const Color primary = Color(0xFF16C8A0);
-  static const Color lightBg = Color(0xFFEAF6EE);
-
   @override
   void initState() {
     super.initState();
@@ -32,230 +29,132 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = context.watch<HomeProvider>();
     final dashboard = provider.dashboard;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade300,
-      body: SafeArea(
-        child: Center(
-          child: SizedBox(
-            width: 390,
-            height: 800,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: Scaffold(
-                backgroundColor: primary,
-                body: provider.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : dashboard == null
-                    ? Center(
-                        child: Text(
-                          provider.errorMessage ?? 'Không có dữ liệu',
+    if (provider.isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade300,
+        body: const SafeArea(child: Center(child: CircularProgressIndicator())),
+      );
+    }
+
+    if (dashboard == null) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade300,
+        body: SafeArea(
+          child: Center(child: Text(provider.errorMessage ?? 'Không có dữ liệu')),
+        ),
+      );
+    }
+
+    return AppPrimaryShell(
+      currentRoute: AppRouter.home,
+      header: _buildHeader(context, dashboard),
+      showAddButton: true,
+      onAddTap: () async {
+        final created =
+            await Navigator.pushNamed(context, AppRouter.addTransaction)
+                as bool?;
+        if (created == true && mounted) {
+          await this.context.read<HomeProvider>().loadDashboard();
+        }
+      },
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Tình Hình Thu Chi',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            _sectionCard(
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: SizedBox(height: 96, child: _MiniBarChart()),
+                  ),
+                  Container(width: 1, height: 90, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _legendRow(
+                          'Tổng Thu',
+                          dashboard.totalIncome,
+                          const Color(0xFF103D3D),
                         ),
-                      )
-                    : Column(
-                        children: [
-                          _buildHeader(context, dashboard),
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.fromLTRB(
-                                18,
-                                18,
-                                18,
-                                12,
-                              ),
-                              decoration: const BoxDecoration(
-                                color: lightBg,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(30),
-                                  topRight: Radius.circular(30),
-                                ),
-                              ),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Tình Hình Thu Chi',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _sectionCard(
-                                      child: Row(
-                                        children: [
-                                          const Expanded(
-                                            child: SizedBox(
-                                              height: 96,
-                                              child: _MiniBarChart(),
-                                            ),
-                                          ),
-                                          Container(
-                                            width: 1,
-                                            height: 90,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                _legendRow(
-                                                  'Tổng Thu',
-                                                  dashboard.totalIncome,
-                                                  const Color(0xFF103D3D),
-                                                ),
-                                                const SizedBox(height: 8),
-                                                _legendRow(
-                                                  'Tổng Chi',
-                                                  dashboard.totalExpense,
-                                                  const Color(0xFF164BFF),
-                                                ),
-                                                const Divider(
-                                                  color: Colors.white,
-                                                ),
-                                                Text(
-                                                  'Chênh lệch\n${dashboard.balance.toStringAsFixed(2)}',
-                                                  style: TextStyle(
-                                                    color:
-                                                        dashboard.balance >= 0
-                                                        ? Colors.white
-                                                        : Colors.red,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _sectionCard(
-                                      child: Row(
-                                        children: [
-                                          const Expanded(
-                                            child: SizedBox(
-                                              height: 110,
-                                              child: _PiePlaceholder(),
-                                            ),
-                                          ),
-                                          Container(
-                                            width: 1,
-                                            height: 90,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              children: dashboard.breakdown
-                                                  .map(
-                                                    (item) => Padding(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            vertical: 4,
-                                                          ),
-                                                      child: Row(
-                                                        children: [
-                                                          const Icon(
-                                                            Icons
-                                                                .layers_rounded,
-                                                            size: 18,
-                                                            color: Color(
-                                                              0xFF0F3D3D,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 8,
-                                                          ),
-                                                          Expanded(
-                                                            child: Text(
-                                                              item.name,
-                                                            ),
-                                                          ),
-                                                          Text(
-                                                            '${item.percentage.round()} %',
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 18),
-                                    const Text(
-                                      'Tổng Quan Lịch Sử',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _historySection(dashboard.historyItems),
-                                    const SizedBox(height: 18),
-                                    const Text(
-                                      'Hạn Mức Chi Tiêu',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _budgetSection(context, dashboard.budgets),
-                                    const SizedBox(height: 20),
-                                    Center(
-                                      child: GestureDetector(
-                                        onTap: () async {
-                                          final created = await Navigator.pushNamed(
-                                                context,
-                                                AppRouter.addTransaction,
-                                              )
-                                              as bool?;
-                                          if (created == true && mounted) {
-                                            await this.context
-                                                .read<HomeProvider>()
-                                                .loadDashboard();
-                                          }
-                                        },
-                                        child: Container(
-                                          width: 72,
-                                          height: 38,
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            border: Border.all(
-                                              color: const Color(0xFF143C3C),
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                          ),
-                                          child: const Icon(
-                                            Icons.add,
-                                            color: Color(0xFF143C3C),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 18),
-                                    const AppBottomNav(
-                                      currentRoute: AppRouter.home,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        const SizedBox(height: 8),
+                        _legendRow(
+                          'Tổng Chi',
+                          dashboard.totalExpense,
+                          const Color(0xFF164BFF),
+                        ),
+                        const Divider(color: Colors.white),
+                        Text(
+                          'Chênh lệch\n${dashboard.balance.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: dashboard.balance >= 0
+                                ? Colors.white
+                                : Colors.red,
+                            fontWeight: FontWeight.w700,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+            const SizedBox(height: 12),
+            _sectionCard(
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: SizedBox(height: 110, child: _PiePlaceholder()),
+                  ),
+                  Container(width: 1, height: 90, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      children: dashboard.breakdown
+                          .map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.layers_rounded,
+                                    size: 18,
+                                    color: Color(0xFF0F3D3D),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(item.name)),
+                                  Text('${item.percentage.round()} %'),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'Tổng Quan Lịch Sử',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            _historySection(dashboard.historyItems),
+            const SizedBox(height: 18),
+            const Text(
+              'Hạn Mức Chi Tiêu',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            _budgetSection(dashboard.budgets),
+          ],
         ),
       ),
     );
@@ -453,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _budgetSection(BuildContext context, List<BudgetModel> budgets) {
+  Widget _budgetSection(List<BudgetModel> budgets) {
     final previewBudgets = budgets.take(3).toList();
 
     return Container(
@@ -467,36 +366,36 @@ class _HomeScreenState extends State<HomeScreen> {
           : Column(
               children: previewBudgets
                   .map(
-              (budget) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Color(0xFF16C8A0),
-                      child: Text(
-                        '\$',
-                        style: TextStyle(color: Color(0xFF103D3D)),
+                    (budget) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                          const CircleAvatar(
+                            backgroundColor: Color(0xFF16C8A0),
+                            child: Text(
+                              '\$',
+                              style: TextStyle(color: Color(0xFF103D3D)),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              budget.budgetName,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          Text(
+                            '${budget.amount.toStringAsFixed(2)} VND',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              color: Color(0xFF164BFF),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        budget.budgetName,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    Text(
-                      '${budget.amount.toStringAsFixed(2)} VND',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        color: Color(0xFF164BFF),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
+                  )
                   .toList(),
             ),
     );

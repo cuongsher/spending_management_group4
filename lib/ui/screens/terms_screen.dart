@@ -114,7 +114,7 @@ class _TermsScreenState extends State<TermsScreen> {
                                   backgroundColor: TermsScreen.primary,
                                   foregroundColor: const Color(0xFF103D3D),
                                 ),
-                                child: const Text('Accept'),
+                                child: const Text('Chấp Nhận'),
                               ),
                             ),
                             const SizedBox(height: 12),
