@@ -14,4 +14,12 @@ class TransactionRepository {
   Future<void> addTransaction(TransactionModel model) {
     return source.addTransaction(model);
   }
+
+  Future<void> updateTransaction(TransactionModel model) {
+    return source.updateTransaction(model);
+  }
+
+  Future<void> deleteTransaction(int id) {
+    return source.deleteTransaction(id);
+  }
 }

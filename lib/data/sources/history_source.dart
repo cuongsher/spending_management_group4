@@ -8,6 +8,8 @@ class HistorySource {
     return db.rawQuery('''
       SELECT
         t.id,
+        t.user_id,
+        t.category_id,
         t.type,
         t.amount,
         t.date,

@@ -49,4 +49,38 @@ class TransactionProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateTransaction(TransactionModel model) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.updateTransaction(model);
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể cập nhật ghi chép';
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deleteTransaction(int id) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteTransaction(id);
+      return true;
+    } catch (_) {
+      errorMessage = 'Không thể xóa ghi chép';
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

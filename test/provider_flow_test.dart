@@ -303,6 +303,46 @@ void main() {
       expect(success, isTrue);
       expect(provider.isLoading, isFalse);
     });
+
+    test('update and delete transaction works', () async {
+      final repo = FakeTransactionRepository();
+      final provider = TransactionProvider(repo);
+
+      final created = TransactionModel(
+        id: 1,
+        userId: 1,
+        categoryId: 2,
+        type: 'expense',
+        amount: 120,
+        date: '2026-03-22',
+        address: 'Old',
+        note: 'Old note',
+      );
+
+      await provider.addTransaction(created);
+
+      final updated = await provider.updateTransaction(
+        TransactionModel(
+          id: 1,
+          userId: 1,
+          categoryId: 2,
+          type: 'expense',
+          amount: 250,
+          date: '2026-03-22',
+          address: 'New',
+          note: 'New note',
+        ),
+      );
+
+      expect(updated, isTrue);
+      expect(repo.transactions.single.amount, 250);
+      expect(repo.transactions.single.address, 'New');
+
+      final deleted = await provider.deleteTransaction(1);
+
+      expect(deleted, isTrue);
+      expect(repo.transactions, isEmpty);
+    });
   });
 }
 
@@ -641,6 +681,8 @@ class FakeTransactionRepository extends TransactionRepository {
   ];
   final List<TransactionModel> _transactions = [];
 
+  List<TransactionModel> get transactions => List.unmodifiable(_transactions);
+
   @override
   Future<List<CategoryModel>> getCategoriesByType(String type) async {
     return _categories.where((item) => item.type == type).toList();
@@ -649,6 +691,19 @@ class FakeTransactionRepository extends TransactionRepository {
   @override
   Future<void> addTransaction(TransactionModel model) async {
     _transactions.add(model);
+  }
+
+  @override
+  Future<void> updateTransaction(TransactionModel model) async {
+    final index = _transactions.indexWhere((item) => item.id == model.id);
+    if (index >= 0) {
+      _transactions[index] = model;
+    }
+  }
+
+  @override
+  Future<void> deleteTransaction(int id) async {
+    _transactions.removeWhere((item) => item.id == id);
   }
 }
 

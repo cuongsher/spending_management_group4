@@ -18,4 +18,23 @@ class TransactionSource {
     final db = await DatabaseHelper.instance.database;
     await db.insert('TransactionTable', model.toMap());
   }
+
+  Future<void> updateTransaction(TransactionModel model) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.update(
+      'TransactionTable',
+      model.toMap(),
+      where: 'id = ?',
+      whereArgs: [model.id],
+    );
+  }
+
+  Future<void> deleteTransaction(int id) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.delete(
+      'TransactionTable',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

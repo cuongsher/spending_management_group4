@@ -1,7 +1,9 @@
+import '../database/models/TransactionModel.dart';
 import '../sources/history_source.dart';
 
 class HistoryTransactionItem {
   HistoryTransactionItem({
+    required this.transaction,
     required this.title,
     required this.subtitle,
     required this.scheduleLabel,
@@ -10,6 +12,7 @@ class HistoryTransactionItem {
     required this.rawDate,
   });
 
+  final TransactionModel transaction;
   final String title;
   final String subtitle;
   final String scheduleLabel;
@@ -68,6 +71,16 @@ class HistoryRepository {
       if (filter == 'expense' && !isExpense) continue;
 
       final item = HistoryTransactionItem(
+        transaction: TransactionModel(
+          id: row['id'] as int?,
+          userId: row['user_id'] as int? ?? 1,
+          categoryId: row['category_id'] as int? ?? 0,
+          type: (row['type'] as String?) ?? 'expense',
+          amount: amount,
+          date: (row['date'] as String?) ?? '',
+          address: (row['address'] as String?) ?? '',
+          note: (row['note'] as String?) ?? '',
+        ),
         title: (row['category_name'] as String?) ?? 'Khác',
         subtitle: _formatDate(rawDate),
         scheduleLabel: _scheduleLabel(isExpense, rawDate),

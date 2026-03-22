@@ -78,7 +78,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ),
                     ),
                   ),
-                  ...section.items.map(_historyTile),
+                  ...section.items.map((item) => _historyTile(context, item)),
                   const SizedBox(height: 8),
                 ],
               ],
@@ -255,68 +255,83 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _historyTile(HistoryTransactionItem item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(
-              color: Color(0xFF6FA8FF),
-              shape: BoxShape.circle,
+  Widget _historyTile(BuildContext context, HistoryTransactionItem item) {
+    return InkWell(
+      onTap: () async {
+        final updated = await Navigator.pushNamed(
+          context,
+          AppRouter.addTransaction,
+          arguments: item.transaction,
+        ) as bool?;
+        if (updated == true && context.mounted) {
+          await context.read<HistoryProvider>().loadHistory(
+            filter: context.read<HistoryProvider>().selectedFilter,
+          );
+        }
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: Color(0xFF6FA8FF),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                item.isExpense
+                    ? Icons.shopping_bag_outlined
+                    : Icons.payments_outlined,
+                color: Colors.white,
+              ),
             ),
-            child: Icon(
-              item.isExpense
-                  ? Icons.shopping_bag_outlined
-                  : Icons.payments_outlined,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                Text(
-                  item.subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF2377F0),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                ),
-              ],
+                  Text(
+                    item.subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF2377F0),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(
-            width: 72,
-            child: Text(
-              item.scheduleLabel,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12),
+            SizedBox(
+              width: 72,
+              child: Text(
+                item.scheduleLabel,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '${item.isExpense ? '-' : ''}${item.amount.toStringAsFixed(2)} VND',
-            style: TextStyle(
-              color: item.isExpense
-                  ? const Color(0xFF164BFF)
-                  : const Color(0xFF103D3D),
-              fontWeight: FontWeight.w700,
+            const SizedBox(width: 8),
+            Text(
+              '${item.isExpense ? '-' : ''}${item.amount.toStringAsFixed(2)} VND',
+              style: TextStyle(
+                color: item.isExpense
+                    ? const Color(0xFF164BFF)
+                    : const Color(0xFF103D3D),
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
