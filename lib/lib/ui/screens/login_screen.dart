@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                               backgroundColor: const Color(0xFFDCEEDC),
                             ),
-                            const SizedBox(height: 20),
+                            // const SizedBox(height: 20),
                             Center(
                               child: GestureDetector(
                                 onTap: () {
@@ -168,39 +168,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                       fontSize: 13,
                                       color: Colors.black87,
                                     ),
-                                    children: [
-                                      TextSpan(text: 'Dùng '),
-                                      TextSpan(
-                                        text: 'Vân Tay',
-                                        style: TextStyle(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      TextSpan(text: ' Để Đăng Nhập'),
-                                    ],
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 22),
-                            const Center(
-                              child: Text(
-                                'hoặc',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildSocialIcon(Icons.facebook_outlined),
-                                const SizedBox(width: 16),
-                                _buildSocialIcon(Icons.g_mobiledata),
-                              ],
                             ),
                           ],
                         ),

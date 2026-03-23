@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/services.dart';
 import '../provider/auth_provider.dart';
 import '../widgets/auth_button.dart';
 import '../widgets/auth_text_field.dart';
@@ -55,10 +55,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     final authProvider = context.read<AuthProvider>();
+
+    final email = _emailController.text.trim().toLowerCase();
+    final phoneRaw = _phoneController.text.trim();
+
+    final phone = phoneRaw.replaceAll(RegExp(r'\D'), '');
+
+    final phoneRegex = RegExp(r'^(03|05|07|08|09)[0-9]{8}$');
+    final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$');
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập số điện thoại')),
+      );
+      return;
+    }
+
+    if (!phoneRegex.hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Số điện thoại không hợp lệ')),
+      );
+      return;
+    }
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui lòng nhập email')));
+      return;
+    }
+
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Email không hợp lệ')));
+      return;
+    }
+
+    // 🔒 Validate password match
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mật khẩu không khớp')));
+      return;
+    }
     final success = await authProvider.register(
       fullName: _fullNameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
+      email: email,
+      phone: phone,
       birthDate: _birthDateController.text.trim(),
       password: _passwordController.text.trim(),
       confirmPassword: _confirmPasswordController.text.trim(),
@@ -75,9 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(authProvider.errorMessage ?? 'Đăng ký thất bại'),
-      ),
+      SnackBar(content: Text(authProvider.errorMessage ?? 'Đăng ký thất bại')),
     );
   }
 
@@ -99,7 +140,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 bottom: MediaQuery.of(context).viewInsets.bottom + 16,
               ),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 32,
+                ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 360),
@@ -121,7 +164,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             const SizedBox(height: 28),
                             Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.fromLTRB(22, 28, 22, 20),
+                              padding: const EdgeInsets.fromLTRB(
+                                22,
+                                28,
+                                22,
+                                20,
+                              ),
                               decoration: const BoxDecoration(
                                 color: lightBg,
                                 borderRadius: BorderRadius.only(

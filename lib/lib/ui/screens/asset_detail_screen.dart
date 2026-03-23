@@ -11,9 +11,10 @@ class AssetDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final asset = ModalRoute.of(context)?.settings.arguments as AssetModel?;
-    final initialValue = ((asset?.amount ?? 0) * 0.9);
-    final currentValue = asset?.amount ?? 0;
+    final asset =
+    ModalRoute.of(context)?.settings.arguments as AssetModel?;
+
+    final assets = asset != null ? [asset] : [];
 
     return AppSecondaryShell(
       primaryColor: primary,
@@ -33,19 +34,12 @@ class AssetDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const Row(
-              children: [
-                Icon(Icons.edit_outlined, color: Color(0xFF103D3D)),
-                SizedBox(width: 10),
-                Icon(Icons.delete_outline, color: Color(0xFF103D3D)),
-              ],
-            ),
           ],
         ),
       ),
       body: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+        padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
           color: lightBg,
           borderRadius: BorderRadius.only(
@@ -53,107 +47,70 @@ class AssetDetailScreen extends StatelessWidget {
             topRight: Radius.circular(30),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: ListView.builder(
+          itemCount: assets.length,
+          itemBuilder: (context, index) {
+            final asset = assets[index];
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _valueBlock('Giá Trị Ban Đầu', initialValue, false)),
-                const SizedBox(width: 24),
-                Expanded(child: _valueBlock('Giá Trị Hiện Tại', currentValue, true)),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'Ngày Mua',
-              style: TextStyle(
-                color: Colors.black.withValues(alpha: 0.65),
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              asset?.purchaseDate.isNotEmpty == true
-                  ? asset!.purchaseDate
-                  : '15/10/2024',
-              style: const TextStyle(
-                color: Color(0xFF1D6FFF),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(child: _chip('Tỷ lệ tăng giá')),
-                const SizedBox(width: 10),
-                Expanded(child: _chip('Tỷ lệ khấu hao')),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(child: _chip('Loại (${asset?.description ?? ''})')),
-                const SizedBox(width: 10),
-                Expanded(child: _chip('Kỳ hạn')),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _wideChip('Ghi Chú'),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.only(top: 18),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(24),
+                // ===== TÊN TÀI SẢN =====
+                _buildField("Tên Tài Sản", asset.assetName),
+
+                const SizedBox(height: 16),
+
+                // ===== GIÁ TRỊ =====
+                _buildField("Số Tiền", _formatCurrency(asset.amount)),
+
+                const SizedBox(height: 16),
+
+                // ===== NGÀY =====
+                _buildField(
+                  "Ngày Mua",
+                  asset.purchaseDate.isNotEmpty
+                      ? asset.purchaseDate
+                      : '23/03/2026',
                 ),
-                child: CustomPaint(painter: _BarSketchPainter()),
-              ),
-            ),
-          ],
+
+                const SizedBox(height: 24),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _valueBlock(String label, double value, bool highlight) {
+  Widget _buildField(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12)),
-        const SizedBox(height: 8),
         Text(
-          _formatCurrency(value),
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: highlight ? primary : const Color(0xFF113939),
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2F4F4F),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFDCE8DF), // xanh nhạt giống ảnh
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF2F4F4F),
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _chip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
-    );
-  }
-
-  Widget _wideChip(String text) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Text(text),
     );
   }
 
@@ -171,44 +128,3 @@ class AssetDetailScreen extends StatelessWidget {
   }
 }
 
-class _BarSketchPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final teal = Paint()
-      ..color = const Color(0xFF16C8A0)
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-    final blue = Paint()
-      ..color = const Color(0xFF1D6FFF)
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-
-    final bars = [
-      [0.18, 0.52, teal],
-      [0.24, 0.36, blue],
-      [0.32, 0.62, teal],
-      [0.38, 0.48, blue],
-      [0.48, 0.74, blue],
-      [0.56, 0.56, teal],
-      [0.64, 0.31, teal],
-      [0.70, 0.49, blue],
-      [0.80, 0.58, teal],
-      [0.86, 0.43, blue],
-      [0.93, 0.26, teal],
-    ];
-
-    for (final bar in bars) {
-      final x = size.width * (bar[0] as double);
-      final height = size.height * (bar[1] as double);
-      final paint = bar[2] as Paint;
-      canvas.drawLine(
-        Offset(x, size.height * 0.88),
-        Offset(x, size.height * 0.88 - height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

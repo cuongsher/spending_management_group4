@@ -46,14 +46,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final userId = authProvider.currentUserId ?? profileProvider.user?.id;
     if (userId == null) return;
 
+    final phone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
+
+    // ✅ Regex
+    final phoneRegex = RegExp(r'^(03|05|07|08|09)[0-9]{8}$');
+    final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$');
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng nhập số điện thoại')),
+      );
+      return;
+    }
+
+    if (!phoneRegex.hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Số điện thoại không hợp lệ')),
+      );
+      return;
+    }
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vui lòng nhập email')),
+      );
+      return;
+    }
+
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email không hợp lệ')),
+      );
+      return;
+    }
+
     final success = await profileProvider.updateProfile(
       userId: userId,
       fullName: _nameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      email: _emailController.text.trim(),
+      phone: phone,
+      email: email,
     );
 
     if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -149,11 +185,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       'Thông Báo Đẩy',
                                       provider.notificationsEnabled,
                                       provider.setNotificationsEnabled,
-                                    ),
-                                    _switchRow(
-                                      'Giao Diện Tối',
-                                      provider.darkModeEnabled,
-                                      provider.setDarkModeEnabled,
                                     ),
                                     const SizedBox(height: 18),
                                     SizedBox(
