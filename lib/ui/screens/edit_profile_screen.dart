@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../router/app_router.dart';
-import '../provider/auth_provider.dart';
 import '../provider/profile_provider.dart';
+import '../utils/profile_session.dart';
 import '../widgets/app_bottom_nav.dart';
+import '../widgets/profile_flow_scaffold.dart';
+import '../widgets/profile_form_field.dart';
+import '../widgets/profile_primary_button.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -14,9 +17,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  static const Color primary = Color(0xFF16C8A0);
-  static const Color lightBg = Color(0xFFEAF6EE);
-
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -41,11 +41,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _save() async {
-    final authProvider = context.read<AuthProvider>();
-    final profileProvider = context.read<ProfileProvider>();
-    final userId = authProvider.currentUserId ?? profileProvider.user?.id;
+    final userId = readCurrentUserId(context);
     if (userId == null) return;
 
+    final profileProvider = context.read<ProfileProvider>();
     final success = await profileProvider.updateProfile(
       userId: userId,
       fullName: _nameController.text.trim(),
@@ -70,149 +69,72 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final provider = context.watch<ProfileProvider>();
     final user = provider.user;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade300,
-      body: SafeArea(
-        child: Center(
-          child: SizedBox(
-            width: 390,
-            height: 800,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: Scaffold(
-                backgroundColor: primary,
-                body: Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(24, 18, 20, 18),
-                      child: Row(
-                        children: [
-                          BackButton(color: Colors.white),
-                          Expanded(
-                            child: Text(
-                              'Thông Tin Cá Nhân',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF113939),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 48),
-                        ],
-                      ),
+    return ProfileFlowScaffold(
+      title: 'Thông Tin Cá Nhân',
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  const CircleAvatar(
+                    radius: 38,
+                    backgroundColor: ProfileFlowTheme.primary,
+                    child: Icon(
+                      Icons.photo_camera_outlined,
+                      color: Colors.white,
                     ),
-                    Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-                        decoration: const BoxDecoration(
-                          color: lightBg,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    const SizedBox(height: 16),
-                                    const CircleAvatar(
-                                      radius: 38,
-                                      backgroundColor: Color(0xFF16C8A0),
-                                      child: Icon(
-                                        Icons.photo_camera_outlined,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      user?.fullName ?? '',
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    Text('ID: ${user?.id ?? 0}'),
-                                    const SizedBox(height: 24),
-                                    _field('Tên', _nameController),
-                                    const SizedBox(height: 12),
-                                    _field('Số Điện Thoại', _phoneController),
-                                    const SizedBox(height: 12),
-                                    _field('Email', _emailController),
-                                    const SizedBox(height: 16),
-                                    _switchRow(
-                                      'Thông Báo Đẩy',
-                                      provider.notificationsEnabled,
-                                      provider.setNotificationsEnabled,
-                                    ),
-                                    _switchRow(
-                                      'Giao Diện Tối',
-                                      provider.darkModeEnabled,
-                                      provider.setDarkModeEnabled,
-                                    ),
-                                    const SizedBox(height: 18),
-                                    SizedBox(
-                                      width: 180,
-                                      child: ElevatedButton(
-                                        onPressed: provider.isLoading
-                                            ? null
-                                            : _save,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: primary,
-                                          foregroundColor: const Color(
-                                            0xFF103D3D,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          provider.isLoading
-                                              ? 'Đang cập nhật...'
-                                              : 'Cập Nhật Thông Tin',
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const AppBottomNav(currentRoute: AppRouter.profile),
-                          ],
-                        ),
-                      ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    user?.fullName ?? '',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
                     ),
-                  ],
-                ),
+                  ),
+                  Text('ID: ${user?.id ?? 0}'),
+                  const SizedBox(height: 24),
+                  ProfileFormField(label: 'Tên', controller: _nameController),
+                  const SizedBox(height: 12),
+                  ProfileFormField(
+                    label: 'Số Điện Thoại',
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 12),
+                  ProfileFormField(
+                    label: 'Email',
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+                  _switchRow(
+                    'Thông Báo Đẩy',
+                    provider.notificationsEnabled,
+                    provider.setNotificationsEnabled,
+                  ),
+                  _switchRow(
+                    'Giao Diện Tối',
+                    provider.darkModeEnabled,
+                    provider.setDarkModeEnabled,
+                  ),
+                  const SizedBox(height: 18),
+                  ProfilePrimaryButton(
+                    label: 'Cập Nhật Thông Tin',
+                    loadingLabel: 'Đang cập nhật...',
+                    isLoading: provider.isLoading,
+                    onPressed: _save,
+                  ),
+                ],
               ),
             ),
           ),
-        ),
+          const SizedBox(height: 12),
+          const AppBottomNav(currentRoute: AppRouter.profile),
+        ],
       ),
-    );
-  }
-
-  Widget _field(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color(0xFFDFF1E1),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -220,7 +142,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Row(
       children: [
         Expanded(child: Text(label)),
-        Switch(value: value, onChanged: onChanged, activeThumbColor: primary),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: ProfileFlowTheme.primary,
+        ),
       ],
     );
   }

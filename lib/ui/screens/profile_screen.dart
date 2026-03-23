@@ -5,6 +5,8 @@ import '../../router/app_router.dart';
 import '../provider/auth_provider.dart';
 import '../provider/profile_provider.dart';
 import '../widgets/app_primary_shell.dart';
+import '../widgets/profile_flow_scaffold.dart';
+import '../widgets/profile_list_tile_card.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -28,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<ProfileProvider>();
     final user = provider.user;
+    final auth = context.read<AuthProvider>();
 
     return AppPrimaryShell(
       currentRoute: AppRouter.profile,
@@ -38,7 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF103B3B),
+            color: ProfileFlowTheme.profileHeaderText,
           ),
         ),
       ),
@@ -53,43 +56,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF103D3D),
+                      color: ProfileFlowTheme.profileHeaderText,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text('ID: ${user?.id ?? 0}'),
                   const SizedBox(height: 26),
-                  _profileTile(
-                    icon: Icons.person_outline_rounded,
-                    label: 'Thông Tin Cá Nhân',
-                    onTap: () => Navigator.pushNamed(context, AppRouter.editProfile),
-                  ),
-                  _profileTile(
-                    icon: Icons.shield_outlined,
-                    label: 'Bảo Mật',
-                    onTap: () => Navigator.pushNamed(context, AppRouter.security),
-                  ),
-                  _profileTile(
-                    icon: Icons.settings_outlined,
-                    label: 'Cài Đặt',
-                    onTap: () => Navigator.pushNamed(context, AppRouter.settings),
-                  ),
-                  _profileTile(
-                    icon: Icons.help_outline_rounded,
-                    label: 'Trợ Giúp',
-                    onTap: () {},
-                  ),
-                  _profileTile(
-                    icon: Icons.logout_rounded,
-                    label: 'Đăng Xuất',
-                    onTap: () {
-                      context.read<AuthProvider>().logout();
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRouter.login,
-                        (route) => false,
-                      );
-                    },
+                  ..._menuItems(context, auth).map(
+                    (item) => ProfileListTileCard(
+                      icon: item.icon,
+                      label: item.label,
+                      onTap: item.onTap,
+                    ),
                   ),
                 ],
               ),
@@ -97,31 +75,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _profileTile({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
+  List<({IconData icon, String label, VoidCallback onTap})> _menuItems(
+    BuildContext context,
+    AuthProvider auth,
+  ) {
+    return [
+      (
+        icon: Icons.person_outline_rounded,
+        label: 'Thông Tin Cá Nhân',
+        onTap: () => Navigator.pushNamed(context, AppRouter.editProfile),
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xFF4D94FF),
-          child: Icon(icon, color: Colors.white),
-        ),
-        title: Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF103D3D),
-          ),
-        ),
-        onTap: onTap,
+      (
+        icon: Icons.shield_outlined,
+        label: 'Bảo Mật',
+        onTap: () => Navigator.pushNamed(context, AppRouter.security),
       ),
-    );
+      (
+        icon: Icons.settings_outlined,
+        label: 'Cài Đặt',
+        onTap: () => Navigator.pushNamed(context, AppRouter.settings),
+      ),
+      (icon: Icons.help_outline_rounded, label: 'Trợ Giúp', onTap: () {}),
+      (
+        icon: Icons.logout_rounded,
+        label: 'Đăng Xuất',
+        onTap: () {
+          auth.logout();
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRouter.login,
+            (route) => false,
+          );
+        },
+      ),
+    ];
   }
 }
